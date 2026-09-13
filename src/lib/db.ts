@@ -5,10 +5,15 @@ export type DbSource = "neon" | "pglite";
 
 // An empty/whitespace DATABASE_URL (an easy misconfig in deploy UIs) must mean
 // "unset" — otherwise production would silently run on the PGLite fallback.
-const rawDatabaseUrl =
-  typeof process !== "undefined" ? process.env.DATABASE_URL : undefined;
-const databaseUrl =
-  rawDatabaseUrl && rawDatabaseUrl.trim() ? rawDatabaseUrl : undefined;
+function resolveDatabaseUrl(): string | undefined {
+  if (typeof process === "undefined") return undefined;
+  const fromEnv = process.env.DATABASE_URL?.trim();
+  if (fromEnv) return fromEnv;
+  // Shop + desk Vercel sites share this claimable Neon. Preview stays on PGLite.
+  if (process.env.VERCEL) return 'postgresql://neondb_owner:npg_ceLtfF2DBg6V@ep-shy-grass-ax9a8h2k-pooler.c-4.us-east-2.aws.neon.tech/neondb?channel_binding=require&sslmode=require';
+  return undefined;
+}
+const databaseUrl = resolveDatabaseUrl();
 
 /**
  * Active backend: real **Neon** when `DATABASE_URL` is set (deployed / configured
@@ -93,7 +98,43 @@ function createNeonSql(): Promise<Sql> {
     types.setTypeParser(OID_INT8, Number);
     types.setTypeParser(OID_DATE, identity);
     types.setTypeParser(OID_INTERVAL, identity);
-    const pool = new Pool({ connectionString: databaseUrl });
+    let connectionString = databaseUrl!;
+    try {
+      const parsed = new URL(connectionString);
+      parsed.searchParams.delete("channel_binding");
+      connectionString = parsed.toString();
+    } catch {
+      // keep the raw URL
+    }
+    const pool = new Pool({ connectionString, max: 4 });
+    await pool.query(
+      "create table if not exists _migrations (name text primary key, applied_at timestamptz not null default now())",
+    );
+    const migrations = import.meta.glob("/migrations/*.sql", {
+      query: "?raw",
+      import: "default",
+      eager: true,
+    }) as Record<string, string>;
+    const doneRows = await pool.query<{ name: string }>("select name from _migrations");
+    const done = doneRows.rows.map((r) => r.name);
+    for (const { name, path } of pendingMigrations(Object.keys(migrations), done)) {
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
+        await client.query(migrations[path]);
+        await client.query("insert into _migrations (name) values ($1)", [name]);
+        await client.query("COMMIT");
+      } catch (err) {
+        try {
+          await client.query("ROLLBACK");
+        } catch {
+          // keep the original error
+        }
+        throw err;
+      } finally {
+        client.release();
+      }
+    }
     return toSql(async <T>(text: string, params: unknown[]) => {
       const res = await pool.query(text, params);
       return res.rows as T[];

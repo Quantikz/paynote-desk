@@ -37,6 +37,17 @@ function fromRow(row: ShelfRow | undefined): ShelfPayload | null {
   };
 }
 
+async function seeded(sql: Awaited<ReturnType<typeof import("@/lib/db").getSql>>): Promise<ShelfPayload> {
+  const shelf: ShelfPayload = {
+    products: SEED_PRODUCTS,
+    promos: SEED_PROMOS,
+    shop: DEFAULT_SHOP,
+    version: 1,
+  };
+  await writeShelf(sql, shelf.products, shelf.promos, shelf.shop, shelf.version);
+  return shelf;
+}
+
 async function readShelf() {
   const { getSql } = await import("@/lib/db");
   const sql = await getSql();
@@ -44,12 +55,20 @@ async function readShelf() {
     const rows = await sql<ShelfRow>`
       select products, promos, shop, version from market_shelf where id = 'live'
     `;
-    return { sql, shelf: fromRow(rows[0]) };
+    const shelf = fromRow(rows[0]);
+    if (shelf?.products?.length) return { sql, shelf };
+    return { sql, shelf: await seeded(sql) };
   } catch {
-    const rows = await sql<ShelfRow>`
-      select products, promos, version from market_shelf where id = 'live'
-    `;
-    return { sql, shelf: fromRow(rows[0]) };
+    try {
+      const rows = await sql<ShelfRow>`
+        select products, promos, version from market_shelf where id = 'live'
+      `;
+      const shelf = fromRow(rows[0]);
+      if (shelf?.products?.length) return { sql, shelf };
+    } catch {
+      // Schema not ready yet — fall through to seed.
+    }
+    return { sql, shelf: await seeded(sql) };
   }
 }
 
