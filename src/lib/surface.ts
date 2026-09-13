@@ -1,10 +1,20 @@
 export type Surface = "shop" | "admin" | "both";
 
+function hostname(): string {
+  if (typeof window !== "undefined") return window.location.hostname.toLowerCase();
+  const env = typeof process !== "undefined" ? process.env : undefined;
+  const raw = env?.VERCEL_PROJECT_PRODUCTION_URL || env?.VERCEL_URL || "";
+  return String(raw)
+    .replace(/^https?:\/\//, "")
+    .split("/")[0]
+    .toLowerCase();
+}
+
 export function surface(): Surface {
   const fromEnv = import.meta.env.VITE_PAYNOTE_SURFACE as Surface | undefined;
   if (fromEnv === "shop" || fromEnv === "admin") return fromEnv;
-  if (typeof window === "undefined") return "both";
-  const host = window.location.hostname.toLowerCase();
+  const host = hostname();
+  if (!host) return "both";
   if (host.includes("desk") || host.includes("admin") || host.startsWith("staff.")) return "admin";
   if (host.includes("shop") || host.includes("market")) return "shop";
   return "both";

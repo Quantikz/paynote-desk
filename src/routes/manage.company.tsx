@@ -11,10 +11,14 @@ import { normalizeShop, type ShopProfile } from "@/lib/shop";
 import { changeStaffPin } from "@/lib/staff-server";
 import { staffToken } from "@/lib/staff-session";
 import { useMarket } from "@/lib/store";
+import { adminUrl, shopUrl } from "@/lib/surface";
 
 export const Route = createFileRoute("/manage/company")({
   component: CompanyPage,
 });
+
+const PUBLIC_SHOP = "https://paynote-shop.vercel.app";
+const PUBLIC_DESK = "https://paynote-desk.vercel.app";
 
 function CompanyPage() {
   const shop = useShop();
@@ -23,6 +27,8 @@ function CompanyPage() {
   const form = draft ?? shop;
   const [pin, setPin] = useState("");
   const [busy, setBusy] = useState(false);
+  const shopLink = shopUrl().startsWith("http") ? shopUrl() : PUBLIC_SHOP;
+  const deskLink = adminUrl().startsWith("http") ? adminUrl() : PUBLIC_DESK;
 
   function setField<K extends keyof ShopProfile>(key: K, value: ShopProfile[K]) {
     setDraft({ ...form, [key]: value });
@@ -57,6 +63,15 @@ function CompanyPage() {
     toast.success("Staff PIN updated. Use the new PIN next time you unlock.");
   }
 
+  async function copy(value: string, label: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      toast.success(`${label} copied.`);
+    } catch {
+      toast.error("Could not copy.");
+    }
+  }
+
   return (
     <div className="space-y-8">
       <div>
@@ -66,6 +81,17 @@ function CompanyPage() {
           Change the name, address, welcome text and colour. The customer shop uses this live — same stock list, same company details.
         </p>
       </div>
+
+      <section className="space-y-4 rounded-xl bg-card p-5 shadow-[var(--shadow-border)]">
+        <div>
+          <h2 className="text-lg font-semibold">Your sites</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Customers only see the shop. Staff open the desk on a phone behind the counter.
+          </p>
+        </div>
+        <SiteRow label="Shop" href={shopLink} onCopy={() => void copy(shopLink, "Shop link")} />
+        <SiteRow label="Staff desk" href={deskLink} onCopy={() => void copy(deskLink, "Desk link")} />
+      </section>
 
       <form
         className="space-y-5 rounded-xl bg-card p-5 shadow-[var(--shadow-border)]"
@@ -139,6 +165,22 @@ function CompanyPage() {
           {busy ? "Saving…" : "Update PIN"}
         </Button>
       </section>
+    </div>
+  );
+}
+
+function SiteRow({ label, href, onCopy }: { label: string; href: string; onCopy: () => void }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-secondary px-4 py-3">
+      <div className="min-w-0">
+        <p className="text-xs tracking-[0.14em] text-muted-foreground uppercase">{label}</p>
+        <a href={href} className="break-all text-sm underline-offset-2 hover:underline" target="_blank" rel="noreferrer">
+          {href}
+        </a>
+      </div>
+      <Button type="button" size="sm" variant="outline" onClick={onCopy}>
+        Copy
+      </Button>
     </div>
   );
 }
