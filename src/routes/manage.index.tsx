@@ -82,7 +82,13 @@ function ManageHome() {
           <Button asChild variant="outline">
             <Link to="/manage/company">Company</Link>
           </Button>
-          <Button variant="outline" onClick={() => resetDemo()}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              resetDemo();
+              void import("@/components/hydrate").then(({ pushShelf }) => pushShelf());
+            }}
+          >
             Reset demo shop
           </Button>
         </div>
