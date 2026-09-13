@@ -11,9 +11,23 @@ export function surface(): Surface {
 }
 
 export function shopUrl() {
-  return import.meta.env.VITE_SHOP_URL || (surface() === "admin" ? "https://paynote-shop.vercel.app" : "/");
+  const env = (import.meta.env.VITE_SHOP_URL as string | undefined)?.trim();
+  if (env) return env;
+  if (surface() === "admin") return "https://paynote-shop.vercel.app";
+  return "/";
 }
 
 export function adminUrl() {
-  return import.meta.env.VITE_ADMIN_URL || (surface() === "shop" ? "https://paynote-desk.vercel.app" : "/admin");
+  const env = (import.meta.env.VITE_ADMIN_URL as string | undefined)?.trim();
+  if (env) return env;
+  if (surface() === "shop") return "https://paynote-desk.vercel.app";
+  return "/admin";
+}
+
+export function isShopSurface() {
+  return surface() === "shop";
+}
+
+export function isAdminSurface() {
+  return surface() === "admin";
 }

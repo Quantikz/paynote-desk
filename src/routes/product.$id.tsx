@@ -7,8 +7,8 @@ import { StorefrontShell } from "@/components/shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/product-card";
-import { categoryLabel, isDeal, STORE } from "@/lib/catalog";
-import { useLiveProducts } from "@/lib/market-hooks";
+import { categoryLabel, isDeal } from "@/lib/catalog";
+import { useLiveProducts, useShop } from "@/lib/market-hooks";
 import { money } from "@/lib/money";
 import { useMarket } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,7 @@ function ProductPage() {
   const { id } = Route.useParams();
   const product = useMarket((s) => s.products.find((item) => item.id === id));
   const products = useLiveProducts();
+  const shop = useShop();
   const addToCart = useMarket((s) => s.addToCart);
   const saved = useMarket((s) => s.saved.includes(id));
   const toggleSaved = useMarket((s) => s.toggleSaved);
@@ -103,7 +104,7 @@ function ProductPage() {
             </Button>
           </div>
           <p className="text-sm text-muted-foreground">
-            Packed at {STORE.street}, {STORE.city}. We deliver in Lagos, or you can pick up from the shop.
+            Packed at {shop.street}, {shop.city}. We deliver in Lagos, or you can pick up from the shop.
           </p>
         </div>
       </div>

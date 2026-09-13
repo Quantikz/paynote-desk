@@ -1,4 +1,4 @@
-import { timingSafeEqual } from "node:crypto";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { SignJWT, jwtVerify } from "jose";
 
 const SESSION_MINUTES = 30;
@@ -10,9 +10,12 @@ function staffPin() {
 }
 
 function sessionKey() {
-  const raw =
-    process.env.STAFF_SESSION_SECRET?.trim() || `paynote-desk:${staffPin()}`;
+  const raw = process.env.STAFF_SESSION_SECRET?.trim() || `paynote-desk:${staffPin()}`;
   return new TextEncoder().encode(raw.padEnd(32, "!"));
+}
+
+function pinDigest(pin: string) {
+  return createHash("sha256").update(`paynote-desk:${pin}`).digest();
 }
 
 function pinsMatch(given: string, expected: string) {
@@ -25,23 +28,49 @@ function pinsMatch(given: string, expected: string) {
   return timingSafeEqual(left, right);
 }
 
+function digestsMatch(given: string, storedHex: string) {
+  const left = pinDigest(given);
+  let right: Buffer;
+  try {
+    right = Buffer.from(storedHex, "hex");
+  } catch {
+    return false;
+  }
+  if (left.length !== right.length) {
+    timingSafeEqual(left, left);
+    return false;
+  }
+  return timingSafeEqual(left, right);
+}
+
 async function gateRow() {
   try {
     const { getSql } = await import("@/lib/db");
     const sql = await getSql();
-    const rows = await sql<{ fail_count: number; locked_until: string | null }>`
-      select fail_count, locked_until from staff_gate where id = 'desk'
+    const rows = await sql<{ fail_count: number; locked_until: string | null; pin_hash: string | null }>`
+      select fail_count, locked_until, pin_hash from staff_gate where id = 'desk'
     `;
-    return rows[0] ?? { fail_count: 0, locked_until: null };
+    return rows[0] ?? { fail_count: 0, locked_until: null, pin_hash: null };
   } catch {
-    return { fail_count: 0, locked_until: null };
+    return { fail_count: 0, locked_until: null, pin_hash: null };
   }
 }
 
-async function writeGate(failCount: number, lockedUntil: string | null) {
+async function writeGate(failCount: number, lockedUntil: string | null, pinHash?: string | null) {
   try {
     const { getSql } = await import("@/lib/db");
     const sql = await getSql();
+    if (pinHash !== undefined) {
+      await sql`
+        insert into staff_gate (id, fail_count, locked_until, pin_hash)
+        values ('desk', ${failCount}, ${lockedUntil}, ${pinHash})
+        on conflict (id) do update set
+          fail_count = excluded.fail_count,
+          locked_until = excluded.locked_until,
+          pin_hash = excluded.pin_hash
+      `;
+      return;
+    }
     await sql`
       insert into staff_gate (id, fail_count, locked_until)
       values ('desk', ${failCount}, ${lockedUntil})
@@ -71,7 +100,8 @@ export async function unlockDesk(pin: string): Promise<
 
   await new Promise((resolve) => setTimeout(resolve, 180));
 
-  if (!pinsMatch(given, staffPin())) {
+  const ok = row.pin_hash ? digestsMatch(given, row.pin_hash) : pinsMatch(given, staffPin());
+  if (!ok) {
     const fails = row.fail_count + 1;
     const locked = fails >= MAX_FAILS ? new Date(Date.now() + LOCK_MS).toISOString() : null;
     await writeGate(fails, locked);
@@ -98,4 +128,17 @@ export async function staffTokenValid(token: string) {
   } catch {
     return false;
   }
+}
+
+export async function setDeskPin(token: string, nextPin: string) {
+  if (!(await staffTokenValid(token))) {
+    return { ok: false as const, error: "Staff session expired. Unlock the desk again." };
+  }
+  const pin = nextPin.trim();
+  if (!/^\d{4,8}$/.test(pin)) {
+    return { ok: false as const, error: "PIN must be 4 to 8 digits." };
+  }
+  const row = await gateRow();
+  await writeGate(0, null, pinDigest(pin).toString("hex"));
+  return { ok: true as const, error: undefined, hadLock: Boolean(row.locked_until) };
 }

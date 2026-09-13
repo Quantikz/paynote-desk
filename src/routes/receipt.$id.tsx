@@ -4,8 +4,9 @@ import { ReceiptView } from "@/components/receipt-view";
 import { StorefrontShell } from "@/components/shell";
 import { TicketActions } from "@/components/ticket-actions";
 import { Button } from "@/components/ui/button";
-import { STORE, STATUS_LABEL } from "@/lib/catalog";
+import { STATUS_LABEL } from "@/lib/catalog";
 import { money } from "@/lib/money";
+import { useShop } from "@/lib/market-hooks";
 import { useMarket } from "@/lib/store";
 
 export const Route = createFileRoute("/receipt/$id")({
@@ -16,6 +17,7 @@ function ReceiptPage() {
   const { id } = Route.useParams();
   const hydrated = useMarket((s) => s.hydrated);
   const order = useMarket((s) => s.orders.find((item) => item.id === id));
+  const shop = useShop();
 
   if (!hydrated && !order) {
     return (
@@ -51,8 +53,8 @@ function ReceiptPage() {
         </h1>
         <p className="mt-2 text-muted-foreground">
           {waiting
-            ? `The code is the full order as JSON — name, phone, every item, prices, VAT, and total. The desk can pack and collect ${money(order.totalCents)} even if the shop computers are offline. Bring it to ${STORE.street}.`
-            : `Collected at ${STORE.name}.`}
+            ? `The code is the full order as JSON — name, phone, every item, prices, VAT, and total. The desk can pack and collect ${money(order.totalCents)} even if the shop computers are offline. Bring it to ${shop.street}.`
+            : `Collected at ${shop.name}.`}
         </p>
 
         {waiting ? (

@@ -2,6 +2,10 @@ import { useMemo } from "react";
 import type { Product } from "@/lib/catalog";
 import { useMarket } from "@/lib/store";
 
+export function useShop() {
+  return useMarket((state) => state.shop);
+}
+
 export function useLiveProducts() {
   const products = useMarket((s) => s.products);
   return useMemo(() => products.filter((p) => p.active && p.stock > 0), [products]);

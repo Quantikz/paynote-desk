@@ -4,8 +4,8 @@ import { ProductCard } from "@/components/product-card";
 import { StorefrontShell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CATEGORIES, STORE, isDeal } from "@/lib/catalog";
-import { useLiveProducts } from "@/lib/market-hooks";
+import { CATEGORIES, isDeal } from "@/lib/catalog";
+import { useLiveProducts, useShop } from "@/lib/market-hooks";
 import { cn } from "@/lib/utils";
 import { useMemo, useState } from "react";
 
@@ -23,6 +23,7 @@ export const Route = createFileRoute("/")({
 function Home() {
   const search = Route.useSearch();
   const products = useLiveProducts();
+  const shop = useShop();
   const [query, setQuery] = useState(search.q ?? "");
 
   const filtered = useMemo(() => {
@@ -42,14 +43,12 @@ function Home() {
       <section className="border-b border-border bg-card">
         <div className="mx-auto max-w-6xl px-4 py-10 sm:py-12">
           <p className="text-[11px] font-medium tracking-[0.22em] text-muted-foreground uppercase">
-            {STORE.city}
+            {shop.city}
           </p>
           <h1 className="font-display mt-3 max-w-xl text-4xl leading-[1.08] tracking-tight sm:text-5xl">
-            Shop what we have in stock today.
+            {shop.tagline}
           </h1>
-          <p className="mt-4 max-w-lg text-muted-foreground">
-            Place an order here, then come to {STORE.street} with your code. The QR holds the full order as JSON, so we can pack it even if we are offline. You pay at the counter.
-          </p>
+          <p className="mt-4 max-w-lg text-muted-foreground">{shop.welcome}</p>
           <div className="mt-6 flex flex-wrap gap-2">
             <Button asChild>
               <a href="#aisles">See products</a>
@@ -61,7 +60,7 @@ function Home() {
             </Button>
           </div>
           <p className="mt-5 text-sm text-muted-foreground">
-            {STORE.street} · {STORE.hours} · {STORE.phone}
+            {shop.street} · {shop.hours} · {shop.phone}
           </p>
         </div>
       </section>

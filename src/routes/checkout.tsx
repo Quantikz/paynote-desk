@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { STORE } from "@/lib/catalog";
 import { holdStock } from "@/components/hydrate";
-import { useCartLines, useCartSubtotal } from "@/lib/market-hooks";
+import { useCartLines, useCartSubtotal, useShop } from "@/lib/market-hooks";
 import { money, TAX_RATE } from "@/lib/money";
 import { useMarket } from "@/lib/store";
 
@@ -19,6 +18,7 @@ export const Route = createFileRoute("/checkout")({
 function CheckoutPage() {
   const lines = useCartLines();
   const subtotal = useCartSubtotal();
+  const shop = useShop();
   const applyPromo = useMarket((s) => s.applyPromo);
   const placeOrder = useMarket((s) => s.placeOrder);
   const navigate = useNavigate();
@@ -100,7 +100,7 @@ function CheckoutPage() {
             <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">Checkout</p>
             <h1 className="font-display mt-1 text-4xl">Confirm your order</h1>
             <p className="mt-2 text-muted-foreground">
-              You will get a QR that holds the full order as JSON. Bring that screen to {STORE.street} and pay when you collect. It still works if the shop is offline.
+              You will get a QR that holds the full order as JSON. Bring that screen to {shop.street} and pay when you collect. It still works if the shop is offline.
             </p>
           </div>
 

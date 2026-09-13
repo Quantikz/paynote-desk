@@ -1,4 +1,5 @@
-import { STORE, type Order, type OrderItem, type OrderStatus, type PayMethod } from "@/lib/catalog";
+import type { Order, OrderItem, OrderStatus, PayMethod } from "@/lib/catalog";
+import { DEFAULT_SHOP, type ShopProfile } from "@/lib/shop";
 import { TAX_RATE } from "@/lib/money";
 
 export type TicketJson = {
@@ -99,7 +100,7 @@ function checksum(value: unknown) {
   return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
-export function orderToTicket(order: Order): TicketJson {
+export function orderToTicket(order: Order, shop: ShopProfile = DEFAULT_SHOP): TicketJson {
   const body: Omit<TicketJson, "checksum"> = {
     app: "paynote",
     v: 2,
@@ -110,11 +111,11 @@ export function orderToTicket(order: Order): TicketJson {
     payAtShop: true,
     offline: true,
     shop: {
-      name: STORE.name,
-      street: STORE.street,
-      city: STORE.city,
-      phone: STORE.phone,
-      hours: STORE.hours,
+      name: shop.name,
+      street: shop.street,
+      city: shop.city,
+      phone: shop.phone,
+      hours: shop.hours,
     },
     order: {
       id: order.id,
@@ -224,16 +225,16 @@ export function ticketToOrder(ticket: TicketJson | LegacyTicket): Order {
   };
 }
 
-export function ticketDocument(order: Order) {
-  return orderToTicket(order);
+export function ticketDocument(order: Order, shop?: ShopProfile) {
+  return orderToTicket(order, shop);
 }
 
-export function ticketPayload(order: Order) {
-  return JSON.stringify(orderToTicket(order));
+export function ticketPayload(order: Order, shop?: ShopProfile) {
+  return JSON.stringify(orderToTicket(order, shop));
 }
 
-export function prettyTicket(order: Order) {
-  return JSON.stringify(orderToTicket(order), null, 2);
+export function prettyTicket(order: Order, shop?: ShopProfile) {
+  return JSON.stringify(orderToTicket(order, shop), null, 2);
 }
 
 export function ticketFileName(order: Order) {
@@ -306,8 +307,8 @@ export function findOrder(orders: Order[], raw: string) {
   );
 }
 
-export function downloadTicketFile(order: Order) {
-  const blob = new Blob([prettyTicket(order)], { type: "application/json" });
+export function downloadTicketFile(order: Order, shop?: ShopProfile) {
+  const blob = new Blob([prettyTicket(order, shop)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;

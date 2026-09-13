@@ -13,6 +13,7 @@ import {
   type Promo,
   type StockMove,
 } from "@/lib/catalog";
+import { DEFAULT_SHOP, type ShopProfile } from "@/lib/shop";
 import { nid, slugify, TAX_RATE, ngn } from "@/lib/money";
 
 export type CheckoutInput = {
@@ -63,7 +64,9 @@ type MarketState = {
   pruneCart: () => void;
   collectOrder: (id: string, payment: PayMethod) => { error?: string };
   acceptTicket: (order: Order) => Order;
-  applyShelf: (products: Product[], promos: Promo[], version: number) => void;
+  applyShelf: (products: Product[], promos: Promo[], version: number, shop?: ShopProfile) => void;
+  applyShop: (shop: ShopProfile) => void;
+  shop: ShopProfile;
   shelfVersion: number;
 };
 
@@ -83,6 +86,7 @@ const seed = {
   moves: [] as StockMove[],
   orderSeq: 1836,
   cartOpen: false,
+  shop: DEFAULT_SHOP,
   shelfVersion: 0,
 };
 
@@ -185,7 +189,7 @@ export const useMarket = create<MarketState>()(
         const seq = get().orderSeq;
         const order: Order = {
           id: nid("ord"),
-          number: `PN-${seq}`,
+          number: `${get().shop.ticketPrefix}-${seq}`,
           createdAt: new Date().toISOString(),
           status: input.status ?? "placed",
           fulfillment: input.fulfillment,
@@ -350,11 +354,17 @@ export const useMarket = create<MarketState>()(
         }));
         return order;
       },
-      applyShelf: (products, promos, version) => {
+      applyShelf: (products, promos, version, shop) => {
         if (!products.length || version <= get().shelfVersion) return;
-        set({ products, promos, shelfVersion: version });
+        set({
+          products,
+          promos,
+          shelfVersion: version,
+          ...(shop ? { shop } : {}),
+        });
         get().pruneCart();
       },
+      applyShop: (shop) => set({ shop }),
       pruneCart: () => {
         const { cart, products } = get();
         const next = cart
@@ -389,6 +399,7 @@ export const useMarket = create<MarketState>()(
         promos: state.promos,
         moves: state.moves,
         orderSeq: state.orderSeq,
+        shop: state.shop,
         shelfVersion: state.shelfVersion,
       }),
     },

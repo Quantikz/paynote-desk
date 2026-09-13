@@ -537,10 +537,4 @@ export const SEED_ORDERS: Order[] = [
   },
 ];
 
-export const STORE = {
-  name: "Paynote",
-  street: "18 Adeola Odeku Street",
-  city: "Victoria Island, Lagos",
-  hours: "Open 8am–9pm, every day",
-  phone: "0803 441 0184",
-};
+export { DEFAULT_SHOP as STORE } from "@/lib/shop";

@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { STATUS_LABEL } from "@/lib/catalog";
 import { money } from "@/lib/money";
+import { useShop } from "@/lib/market-hooks";
 import { useMarket } from "@/lib/store";
 
 export const Route = createFileRoute("/manage/")({
@@ -23,6 +24,7 @@ function ManageHome() {
   const orders = useMarket((s) => s.orders);
   const products = useMarket((s) => s.products);
   const resetDemo = useMarket((s) => s.resetDemo);
+  const shop = useShop();
   const [chartOn, setChartOn] = useState(false);
   useEffect(() => setChartOn(true), []);
 
@@ -67,7 +69,7 @@ function ManageHome() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">Lagos shop</p>
+          <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">{shop.city}</p>
           <h1 className="font-display text-4xl">Staff desk</h1>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -76,6 +78,9 @@ function ManageHome() {
           </Button>
           <Button asChild variant="outline">
             <Link to="/manage/run">Packing list</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/manage/company">Company</Link>
           </Button>
           <Button variant="outline" onClick={() => resetDemo()}>
             Reset demo shop

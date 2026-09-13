@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import type { Order } from "@/lib/catalog";
+import { useShop } from "@/lib/market-hooks";
 import { ticketPayload } from "@/lib/ticket";
 
 export function OrderQr({
@@ -12,13 +13,14 @@ export function OrderQr({
   light?: string;
   dark?: string;
 }) {
+  const shop = useShop();
   const [src, setSrc] = useState("");
   const [error, setError] = useState("");
   const [bytes, setBytes] = useState(0);
 
   useEffect(() => {
     let live = true;
-    const payload = ticketPayload(order);
+    const payload = ticketPayload(order, shop);
     setBytes(payload.length);
     void QRCode.toDataURL(payload, {
       margin: 1,
@@ -38,7 +40,7 @@ export function OrderQr({
     return () => {
       live = false;
     };
-  }, [order, dark, light]);
+  }, [order, shop, dark, light]);
 
   if (error) {
     return <p className="text-sm text-destructive">{error}</p>;

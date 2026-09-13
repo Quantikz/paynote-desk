@@ -15,11 +15,10 @@ import { LiveShelfChip } from "@/components/live-shelf";
 import { SearchDialog } from "@/components/search-dialog";
 import { Wordmark } from "@/components/wordmark";
 import { Button } from "@/components/ui/button";
-import { useCartCount } from "@/lib/market-hooks";
-import { STORE } from "@/lib/catalog";
+import { useCartCount, useShop } from "@/lib/market-hooks";
 import { clearStaffSession, staffMsLeft } from "@/lib/staff-session";
 import { useMarket } from "@/lib/store";
-import { adminUrl, shopUrl, surface } from "@/lib/surface";
+import { shopUrl, surface } from "@/lib/surface";
 import { cn } from "@/lib/utils";
 
 const MANAGE = [
@@ -32,15 +31,18 @@ const MANAGE = [
   { to: "/manage/register", label: "Walk-in" },
   { to: "/manage/customers", label: "Customers" },
   { to: "/manage/promos", label: "Promos" },
+  { to: "/manage/company", label: "Company" },
 ] as const;
 
 export function StorefrontShell({ children }: { children: React.ReactNode }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const cartCount = useCartCount();
+  const shop = useShop();
   const setCartOpen = useMarket((s) => s.setCartOpen);
   const pruneCart = useMarket((s) => s.pruneCart);
   const products = useMarket((s) => s.products);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const showDesk = surface() === "both";
 
   useEffect(() => {
     pruneCart();
@@ -96,31 +98,25 @@ export function StorefrontShell({ children }: { children: React.ReactNode }) {
                 </span>
               ) : null}
             </Button>
-            {surface() === "shop" ? (
-              <Button asChild variant="outline" size="sm">
-                <a href={adminUrl()}>Staff desk</a>
-              </Button>
-            ) : (
+            {showDesk ? (
               <Button asChild variant="outline" size="sm">
                 <Link to="/admin">Staff desk</Link>
               </Button>
-            )}
+            ) : null}
           </div>
         </div>
       </header>
       <main>{children}</main>
       <footer className="hidden border-t border-border px-4 py-6 text-center text-xs text-muted-foreground md:block">
-        {STORE.name} · {STORE.street}, {STORE.city} · {STORE.phone}
-        <span className="mx-2">·</span>
-        {surface() === "shop" ? (
-          <a href={adminUrl()} className="underline-offset-2 hover:text-foreground hover:underline">
-            Staff desk
-          </a>
-        ) : (
-          <Link to="/admin" className="underline-offset-2 hover:text-foreground hover:underline">
-            Staff desk
-          </Link>
-        )}
+        {shop.name} · {shop.street}, {shop.city} · {shop.phone}
+        {showDesk ? (
+          <>
+            <span className="mx-2">·</span>
+            <Link to="/admin" className="underline-offset-2 hover:text-foreground hover:underline">
+              Staff desk
+            </Link>
+          </>
+        ) : null}
       </footer>
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur-sm md:hidden">
         <div className="grid grid-cols-3">

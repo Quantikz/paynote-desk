@@ -14,8 +14,10 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as ManageRouteImport } from './routes/manage'
 import { Route as OrdersRouteImport } from './routes/orders'
+import { Route as ApiShelfRouteImport } from './routes/api/shelf'
 import { Route as ManageIndexRouteImport } from './routes/manage.index'
 import { Route as ManageCatalogRouteImport } from './routes/manage.catalog'
+import { Route as ManageCompanyRouteImport } from './routes/manage.company'
 import { Route as ManageCustomersRouteImport } from './routes/manage.customers'
 import { Route as ManageInventoryRouteImport } from './routes/manage.inventory'
 import { Route as ManageOrdersRouteImport } from './routes/manage.orders'
@@ -51,6 +53,11 @@ const OrdersRoute = OrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiShelfRoute = ApiShelfRouteImport.update({
+  id: '/api/shelf',
+  path: '/api/shelf',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ManageIndexRoute = ManageIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -59,6 +66,11 @@ const ManageIndexRoute = ManageIndexRouteImport.update({
 const ManageCatalogRoute = ManageCatalogRouteImport.update({
   id: '/catalog',
   path: '/catalog',
+  getParentRoute: () => ManageRoute,
+} as any)
+const ManageCompanyRoute = ManageCompanyRouteImport.update({
+  id: '/company',
+  path: '/company',
   getParentRoute: () => ManageRoute,
 } as any)
 const ManageCustomersRoute = ManageCustomersRouteImport.update({
@@ -113,7 +125,9 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/manage': typeof ManageRouteWithChildren
   '/orders': typeof OrdersRoute
+  '/api/shelf': typeof ApiShelfRoute
   '/manage/catalog': typeof ManageCatalogRoute
+  '/manage/company': typeof ManageCompanyRoute
   '/manage/customers': typeof ManageCustomersRoute
   '/manage/inventory': typeof ManageInventoryRoute
   '/manage/orders': typeof ManageOrdersRoute
@@ -130,7 +144,9 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/checkout': typeof CheckoutRoute
   '/orders': typeof OrdersRoute
+  '/api/shelf': typeof ApiShelfRoute
   '/manage/catalog': typeof ManageCatalogRoute
+  '/manage/company': typeof ManageCompanyRoute
   '/manage/customers': typeof ManageCustomersRoute
   '/manage/inventory': typeof ManageInventoryRoute
   '/manage/orders': typeof ManageOrdersRoute
@@ -149,7 +165,9 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/manage': typeof ManageRouteWithChildren
   '/orders': typeof OrdersRoute
+  '/api/shelf': typeof ApiShelfRoute
   '/manage/catalog': typeof ManageCatalogRoute
+  '/manage/company': typeof ManageCompanyRoute
   '/manage/customers': typeof ManageCustomersRoute
   '/manage/inventory': typeof ManageInventoryRoute
   '/manage/orders': typeof ManageOrdersRoute
@@ -169,7 +187,9 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/manage'
     | '/orders'
+    | '/api/shelf'
     | '/manage/catalog'
+    | '/manage/company'
     | '/manage/customers'
     | '/manage/inventory'
     | '/manage/orders'
@@ -186,7 +206,9 @@ export interface FileRouteTypes {
     | '/admin'
     | '/checkout'
     | '/orders'
+    | '/api/shelf'
     | '/manage/catalog'
+    | '/manage/company'
     | '/manage/customers'
     | '/manage/inventory'
     | '/manage/orders'
@@ -204,7 +226,9 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/manage'
     | '/orders'
+    | '/api/shelf'
     | '/manage/catalog'
+    | '/manage/company'
     | '/manage/customers'
     | '/manage/inventory'
     | '/manage/orders'
@@ -223,6 +247,7 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   ManageRoute: typeof ManageRouteWithChildren
   OrdersRoute: typeof OrdersRoute
+  ApiShelfRoute: typeof ApiShelfRoute
   ProductIdRoute: typeof ProductIdRoute
   ReceiptIdRoute: typeof ReceiptIdRoute
 }
@@ -264,6 +289,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrdersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/shelf': {
+      id: '/api/shelf'
+      path: '/api/shelf'
+      fullPath: '/api/shelf'
+      preLoaderRoute: typeof ApiShelfRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/manage/': {
       id: '/manage/'
       path: '/'
@@ -276,6 +308,13 @@ declare module '@tanstack/react-router' {
       path: '/catalog'
       fullPath: '/manage/catalog'
       preLoaderRoute: typeof ManageCatalogRouteImport
+      parentRoute: typeof ManageRoute
+    }
+    '/manage/company': {
+      id: '/manage/company'
+      path: '/company'
+      fullPath: '/manage/company'
+      preLoaderRoute: typeof ManageCompanyRouteImport
       parentRoute: typeof ManageRoute
     }
     '/manage/customers': {
@@ -346,6 +385,7 @@ declare module '@tanstack/react-router' {
 
 interface ManageRouteChildren {
   ManageCatalogRoute: typeof ManageCatalogRoute
+  ManageCompanyRoute: typeof ManageCompanyRoute
   ManageCustomersRoute: typeof ManageCustomersRoute
   ManageInventoryRoute: typeof ManageInventoryRoute
   ManageOrdersRoute: typeof ManageOrdersRoute
@@ -358,6 +398,7 @@ interface ManageRouteChildren {
 
 const ManageRouteChildren: ManageRouteChildren = {
   ManageCatalogRoute: ManageCatalogRoute,
+  ManageCompanyRoute: ManageCompanyRoute,
   ManageCustomersRoute: ManageCustomersRoute,
   ManageInventoryRoute: ManageInventoryRoute,
   ManageOrdersRoute: ManageOrdersRoute,
@@ -377,6 +418,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   ManageRoute: ManageRouteWithChildren,
   OrdersRoute: OrdersRoute,
+  ApiShelfRoute: ApiShelfRoute,
   ProductIdRoute: ProductIdRoute,
   ReceiptIdRoute: ReceiptIdRoute,
 }

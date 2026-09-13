@@ -10,7 +10,7 @@ export const Route = createFileRoute("/manage")({
     meta: [
       { name: "robots", content: "noindex, nofollow" },
       { name: "theme-color", content: "#0b7a3b" },
-      { title: "Paynote desk" },
+      { title: "Staff desk" },
     ],
   }),
   component: ManageLayout,

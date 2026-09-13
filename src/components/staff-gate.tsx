@@ -3,6 +3,7 @@ import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useShop } from "@/lib/market-hooks";
 import { saveStaffSession, staffUnlocked } from "@/lib/staff-session";
 import { verifyStaffPin } from "@/lib/staff-server";
 
@@ -13,6 +14,7 @@ export function StaffGate({ onUnlock }: { onUnlock: () => void }) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const shop = useShop();
 
   useEffect(() => {
     document.documentElement.classList.add("admin-root");
@@ -47,7 +49,7 @@ export function StaffGate({ onUnlock }: { onUnlock: () => void }) {
         <p className="mt-5 text-[11px] font-medium tracking-[0.22em] text-muted-foreground uppercase">
           Restricted desk
         </p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">Paynote desk</h1>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">{shop.name} desk</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Staff only. PIN is checked on the server. Five wrong tries lock the desk for five minutes. Session ends after 30 minutes.
         </p>

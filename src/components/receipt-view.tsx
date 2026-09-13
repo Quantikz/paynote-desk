@@ -1,14 +1,16 @@
 import { format } from "date-fns";
-import { STORE, STATUS_LABEL, PAY_LABEL, type Order } from "@/lib/catalog";
+import { STATUS_LABEL, PAY_LABEL, type Order } from "@/lib/catalog";
 import { money } from "@/lib/money";
+import { useShop } from "@/lib/market-hooks";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
 export function ReceiptView({ order }: { order: Order }) {
+  const shop = useShop();
   return (
     <article className="overflow-hidden rounded-xl bg-card shadow-[var(--shadow-border)]">
       <div className="bg-primary px-5 py-6 text-primary-foreground">
-        <p className="text-[11px] tracking-[0.2em] uppercase opacity-80">Paynote</p>
+        <p className="text-[11px] tracking-[0.2em] uppercase opacity-80">{shop.name}</p>
         <h1 className="font-display mt-1 text-3xl italic">{order.number}</h1>
         <p className="mt-2 text-sm opacity-80">
           {format(new Date(order.createdAt), "EEE, MMM d · h:mm a")}
@@ -33,9 +35,9 @@ export function ReceiptView({ order }: { order: Order }) {
           <div>
             <p className="text-muted-foreground">Collect at</p>
             <p className="font-medium">
-              {STORE.name}, {STORE.street}
+              {shop.name}, {shop.street}
             </p>
-            <p className="text-muted-foreground">{STORE.city}</p>
+            <p className="text-muted-foreground">{shop.city}</p>
           </div>
         </div>
         <Separator />
@@ -72,26 +74,18 @@ export function ReceiptView({ order }: { order: Order }) {
           <p className="text-sm text-muted-foreground">Note: {order.notes}</p>
         ) : null}
         <p className="text-xs text-muted-foreground">
-          {STORE.name} · {STORE.street} · {STORE.city}
+          {shop.name} · {shop.street} · {shop.city}
         </p>
       </div>
     </article>
   );
 }
 
-function Row({
-  label,
-  value,
-  strong,
-}: {
-  label: string;
-  value: string;
-  strong?: boolean;
-}) {
+function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
   return (
-    <div className="flex justify-between gap-4">
-      <dt className={strong ? "font-medium" : "text-muted-foreground"}>{label}</dt>
-      <dd className={strong ? "font-medium tabular-nums" : "tabular-nums"}>{value}</dd>
+    <div className="flex items-center justify-between gap-3">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className={strong ? "text-base font-semibold tabular-nums" : "tabular-nums"}>{value}</dd>
     </div>
   );
 }
