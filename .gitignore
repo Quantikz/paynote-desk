@@ -1,0 +1,12 @@
+node_modules
+.output
+.vercel
+.nitro
+.tanstack
+.grok/preview.log
+.grok/*.log
+dist
+*.local
+.DS_Store
+screenshots
+artifacts
