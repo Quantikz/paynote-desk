@@ -198,6 +198,7 @@ export const useMarket = create<MarketState>()(
           },
           items: lines.map((line) => ({
             productId: line.product.id,
+            sku: line.product.sku,
             name: line.product.name,
             unit: line.product.unit,
             qty: line.qty,
@@ -332,19 +333,25 @@ export const useMarket = create<MarketState>()(
       },
       acceptTicket: (order) => {
         const existing = get().orders.find((item) => item.id === order.id || item.number === order.number);
-        if (existing) return existing;
+        if (existing) {
+          const merged: Order = {
+            ...order,
+            id: existing.id,
+            status: existing.status === "delivered" || existing.status === "cancelled" ? existing.status : order.status,
+            payment: existing.payment ?? order.payment,
+          };
+          set((state) => ({
+            orders: state.orders.map((item) => (item.id === existing.id ? merged : item)),
+          }));
+          return merged;
+        }
         set((state) => ({
           orders: [order, ...state.orders],
-          products: state.products.map((product) => {
-            const line = order.items.find((item) => item.productId === product.id);
-            if (!line) return product;
-            return { ...product, stock: Math.max(0, product.stock - line.qty) };
-          }),
         }));
         return order;
       },
       applyShelf: (products, promos, version) => {
-        if (version <= get().shelfVersion) return;
+        if (!products.length || version <= get().shelfVersion) return;
         set({ products, promos, shelfVersion: version });
         get().pruneCart();
       },

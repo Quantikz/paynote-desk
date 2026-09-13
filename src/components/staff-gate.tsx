@@ -3,61 +3,53 @@ import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { STAFF_PIN } from "@/lib/money";
+import { saveStaffSession, staffUnlocked } from "@/lib/staff-session";
+import { verifyStaffPin } from "@/lib/staff-server";
 
-export const STAFF_KEY = "paynote-staff";
-export const STAFF_PIN_KEY = "paynote-staff-pin";
-export const STAFF_UNTIL_KEY = "paynote-staff-until";
-const SESSION_MS = 30 * 60 * 1000;
-
-export function staffUnlocked() {
-  if (typeof window === "undefined") return false;
-  const until = Number(sessionStorage.getItem(STAFF_UNTIL_KEY) ?? 0);
-  if (!until || Date.now() > until) {
-    sessionStorage.removeItem(STAFF_KEY);
-    sessionStorage.removeItem(STAFF_PIN_KEY);
-    sessionStorage.removeItem(STAFF_UNTIL_KEY);
-    return false;
-  }
-  return sessionStorage.getItem(STAFF_KEY) === "1";
-}
+export { staffUnlocked } from "@/lib/staff-session";
+export { STAFF_KEY, STAFF_TOKEN_KEY as STAFF_PIN_KEY, STAFF_UNTIL_KEY } from "@/lib/staff-session";
 
 export function StaffGate({ onUnlock }: { onUnlock: () => void }) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.add("admin-root");
     return () => document.documentElement.classList.remove("admin-root");
   }, []);
 
-  function submit(event: React.FormEvent) {
+  async function submit(event: React.FormEvent) {
     event.preventDefault();
-    if (pin.trim() === STAFF_PIN) {
-      sessionStorage.setItem(STAFF_KEY, "1");
-      sessionStorage.setItem(STAFF_PIN_KEY, pin.trim());
-      sessionStorage.setItem(STAFF_UNTIL_KEY, String(Date.now() + SESSION_MS));
-      onUnlock();
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    const result = await verifyStaffPin({ data: { pin: pin.trim() } });
+    setBusy(false);
+    if (!result.ok) {
+      setError(result.error);
+      setPin("");
       return;
     }
-    setError("Wrong PIN.");
+    saveStaffSession(result.token, result.expiresAt);
+    onUnlock();
   }
 
   return (
     <div className="admin-root flex min-h-dvh items-center justify-center bg-background px-4">
       <form
-        onSubmit={submit}
+        onSubmit={(event) => void submit(event)}
         className="w-full max-w-sm border border-border bg-card p-8 text-card-foreground"
       >
         <div className="grid size-10 place-items-center bg-primary text-primary-foreground">
           <Lock className="size-4" />
         </div>
-        <p className="mt-5 text-xs font-medium tracking-[0.2em] text-muted-foreground uppercase">
-          Restricted
+        <p className="mt-5 text-[11px] font-medium tracking-[0.22em] text-muted-foreground uppercase">
+          Restricted desk
         </p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">Paynote desk</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Staff only. Scan customer codes and collect payment. Session ends after 30 minutes.
+          Staff only. PIN is checked on the server. Five wrong tries lock the desk for five minutes. Session ends after 30 minutes.
         </p>
         <div className="mt-6">
           <Label htmlFor="pin">Staff PIN</Label>
@@ -65,9 +57,9 @@ export function StaffGate({ onUnlock }: { onUnlock: () => void }) {
             id="pin"
             type="password"
             inputMode="numeric"
-            autoComplete="current-password"
+            autoComplete="off"
             autoFocus
-            className="mt-1.5"
+            className="mt-1.5 font-mono tracking-[0.3em]"
             value={pin}
             onChange={(e) => {
               setPin(e.target.value);
@@ -76,8 +68,8 @@ export function StaffGate({ onUnlock }: { onUnlock: () => void }) {
           />
         </div>
         {error ? <p className="mt-2 text-sm text-destructive">{error}</p> : null}
-        <Button type="submit" className="mt-6 w-full" size="lg">
-          Unlock
+        <Button type="submit" className="mt-6 w-full" size="lg" disabled={busy}>
+          {busy ? "Checking…" : "Unlock"}
         </Button>
       </form>
     </div>

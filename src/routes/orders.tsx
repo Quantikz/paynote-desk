@@ -27,7 +27,7 @@ function OrdersPage() {
         <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">Account</p>
         <h1 className="font-display mt-1 text-4xl">My orders</h1>
         <p className="mt-2 text-muted-foreground">
-          Orders stay on this phone. Open a receipt to see packing and delivery.
+          Open a receipt to show the collection QR. That code is the full order JSON — the desk can pack it even if the shop is offline.
         </p>
 
         {saved.length > 0 ? (

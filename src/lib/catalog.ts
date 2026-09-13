@@ -64,6 +64,7 @@ export type PayMethod = "delivery" | "transfer" | "card" | "cash";
 
 export type OrderItem = {
   productId: string;
+  sku?: string;
   name: string;
   unit: string;
   qty: number;

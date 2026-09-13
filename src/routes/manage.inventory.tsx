@@ -34,7 +34,7 @@ function InventoryPage() {
       return;
     }
     adjustStock(id, Math.trunc(delta), delta > 0 ? "Receive" : "Adjust");
-    toast.success(delta > 0 ? "Received" : "Adjusted");
+    toast.success(delta > 0 ? "Received. Shop stock is updating." : "Adjusted. Shop stock is updating.");
     setDraft((s) => ({ ...s, [id]: "" }));
   }
 

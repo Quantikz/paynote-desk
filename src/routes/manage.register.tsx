@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { holdStock } from "@/components/hydrate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { QtyStepper } from "@/components/qty-stepper";
@@ -63,7 +64,7 @@ function RegisterPage() {
     );
   }
 
-  function charge() {
+  async function charge() {
     if (ticket.length === 0) {
       toast.error("No items on this sale.");
       return;
@@ -83,6 +84,7 @@ function RegisterPage() {
       toast.error(result.error ?? "Sale did not go through.");
       return;
     }
+    await holdStock(result.order.items.map((item) => ({ productId: item.productId, qty: item.qty })));
     toast.success(`Sold ${result.order.number} · ${money(result.order.totalCents)}`);
     setTicket([]);
     setQ("");
@@ -167,7 +169,7 @@ function RegisterPage() {
           <span>Total</span>
           <span className="tabular-nums">{money(total)}</span>
         </div>
-        <Button className="mt-5 w-full" size="lg" onClick={charge} disabled={lines.length === 0}>
+        <Button className="mt-5 w-full" size="lg" onClick={() => void charge()} disabled={lines.length === 0}>
           Complete sale
         </Button>
       </aside>

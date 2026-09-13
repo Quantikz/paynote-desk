@@ -14,21 +14,26 @@ export function OrderQr({
 }) {
   const [src, setSrc] = useState("");
   const [error, setError] = useState("");
+  const [bytes, setBytes] = useState(0);
 
   useEffect(() => {
     let live = true;
     const payload = ticketPayload(order);
+    setBytes(payload.length);
     void QRCode.toDataURL(payload, {
       margin: 1,
-      width: 420,
+      width: 480,
       color: { dark, light },
-      errorCorrectionLevel: payload.length > 1200 ? "L" : "M",
+      errorCorrectionLevel: "L",
     })
       .then((url) => {
-        if (live) setSrc(url);
+        if (live) {
+          setSrc(url);
+          setError("");
+        }
       })
       .catch(() => {
-        if (live) setError("This order is too large for one code. Split the cart.");
+        if (live) setError("This order is too large for one code. Download the JSON file and load it at the desk.");
       });
     return () => {
       live = false;
@@ -43,10 +48,15 @@ export function OrderQr({
   }
 
   return (
-    <img
-      src={src}
-      alt={`Collection code ${order.number}`}
-      className="mx-auto w-64 rounded-lg bg-white"
-    />
+    <figure>
+      <img
+        src={src}
+        alt={`Collection JSON for ${order.number}`}
+        className="mx-auto w-64 rounded-lg bg-white"
+      />
+      <figcaption className="mt-2 text-center text-[11px] tracking-wide text-muted-foreground uppercase">
+        Full order JSON · {bytes} bytes · works offline
+      </figcaption>
+    </figure>
   );
 }

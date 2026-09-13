@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { STORE } from "@/lib/catalog";
+import { holdStock } from "@/components/hydrate";
 import { useCartLines, useCartSubtotal } from "@/lib/market-hooks";
 import { money, TAX_RATE } from "@/lib/money";
 import { useMarket } from "@/lib/store";
@@ -47,7 +48,7 @@ function CheckoutPage() {
     toast.success(`${result.promo?.code} applied`);
   }
 
-  function onConfirm() {
+  async function onConfirm() {
     if (lines.length === 0) return;
     if (!name.trim() || !phone.trim()) {
       toast.error("Please enter your name and phone number.");
@@ -64,11 +65,15 @@ function CheckoutPage() {
       promoCode,
       tipCents: 0,
     });
-    setBusy(false);
     if (result.error || !result.order) {
+      setBusy(false);
       toast.error(result.error ?? "We could not place this order.");
       return;
     }
+    await holdStock(
+      result.order.items.map((item) => ({ productId: item.productId, qty: item.qty })),
+    );
+    setBusy(false);
     toast.success("Order placed. Show your code at the shop.");
     void navigate({ to: "/receipt/$id", params: { id: result.order.id } });
   }
@@ -95,7 +100,7 @@ function CheckoutPage() {
             <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">Checkout</p>
             <h1 className="font-display mt-1 text-4xl">Confirm your order</h1>
             <p className="mt-2 text-muted-foreground">
-              You will get a code. Bring it to {STORE.street} and pay when you collect.
+              You will get a QR that holds the full order as JSON. Bring that screen to {STORE.street} and pay when you collect. It still works if the shop is offline.
             </p>
           </div>
 
@@ -160,7 +165,7 @@ function CheckoutPage() {
               <dd className="tabular-nums">{money(total)}</dd>
             </div>
           </dl>
-          <Button className="mt-5 w-full" size="lg" disabled={busy} onClick={onConfirm}>
+          <Button className="mt-5 w-full" size="lg" disabled={busy} onClick={() => void onConfirm()}>
             Confirm order
           </Button>
           <p className="mt-3 text-center text-xs text-muted-foreground">

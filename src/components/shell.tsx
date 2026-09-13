@@ -3,6 +3,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   ClipboardList,
   LayoutDashboard,
+  Lock,
   Package,
   QrCode,
   Search,
@@ -10,11 +11,13 @@ import {
   Store,
 } from "lucide-react";
 import { CartDrawer } from "@/components/cart-drawer";
+import { LiveShelfChip } from "@/components/live-shelf";
 import { SearchDialog } from "@/components/search-dialog";
 import { Wordmark } from "@/components/wordmark";
 import { Button } from "@/components/ui/button";
 import { useCartCount } from "@/lib/market-hooks";
 import { STORE } from "@/lib/catalog";
+import { clearStaffSession, staffMsLeft } from "@/lib/staff-session";
 import { useMarket } from "@/lib/store";
 import { adminUrl, shopUrl, surface } from "@/lib/surface";
 import { cn } from "@/lib/utils";
@@ -153,9 +156,36 @@ export function StorefrontShell({ children }: { children: React.ReactNode }) {
 
 export function ManageShell({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [left, setLeft] = useState(staffMsLeft());
+
+  useEffect(() => {
+    const tick = window.setInterval(() => {
+      const ms = staffMsLeft();
+      setLeft(ms);
+      if (ms <= 0) window.location.reload();
+    }, 1000);
+    return () => window.clearInterval(tick);
+  }, []);
+
+  const minutes = Math.floor(left / 60000);
+  const seconds = Math.floor((left % 60000) / 1000);
+
+  function lock() {
+    clearStaffSession();
+    window.location.reload();
+  }
 
   return (
     <div className="admin-root min-h-dvh pb-20 md:pb-0">
+      <div className="flex items-center justify-between gap-3 border-b border-border bg-foreground px-4 py-1.5 text-[11px] tracking-[0.16em] text-background uppercase">
+        <span className="inline-flex items-center gap-1.5">
+          <Lock className="size-3" />
+          Restricted desk
+        </span>
+        <span className="font-mono tabular-nums">
+          Session {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
+        </span>
+      </div>
       <header className="sticky top-0 z-40 border-b border-border bg-card">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4">
           <Wordmark to="/manage" subtitle="Staff desk" />
@@ -175,9 +205,15 @@ export function ManageShell({ children }: { children: React.ReactNode }) {
               </Link>
             ))}
           </nav>
-          <Button asChild variant="outline" size="sm" className="ml-auto xl:ml-2">
-            {surface() === "admin" ? <a href={shopUrl()}>View shop</a> : <Link to="/">View shop</Link>}
-          </Button>
+          <div className="ml-auto flex items-center gap-2 xl:ml-2">
+            <LiveShelfChip />
+            <Button asChild variant="outline" size="sm">
+              {surface() === "admin" ? <a href={shopUrl()}>View shop</a> : <Link to="/">View shop</Link>}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={lock}>
+              Lock
+            </Button>
+          </div>
         </div>
         <div className="no-scrollbar flex gap-2 overflow-x-auto px-4 pb-3 xl:hidden">
           {MANAGE.map((item) => (

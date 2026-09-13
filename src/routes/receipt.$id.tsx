@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { OrderQr } from "@/components/order-qr";
 import { ReceiptView } from "@/components/receipt-view";
 import { StorefrontShell } from "@/components/shell";
+import { TicketActions } from "@/components/ticket-actions";
 import { Button } from "@/components/ui/button";
 import { STORE, STATUS_LABEL } from "@/lib/catalog";
 import { money } from "@/lib/money";
@@ -50,7 +51,7 @@ function ReceiptPage() {
         </h1>
         <p className="mt-2 text-muted-foreground">
           {waiting
-            ? `Bring this screen to ${STORE.street}. The officer will scan it, pack your items, and collect ${money(order.totalCents)}. The code holds the full order, so it still works if the shop is offline.`
+            ? `The code is the full order as JSON — name, phone, every item, prices, VAT, and total. The desk can pack and collect ${money(order.totalCents)} even if the shop computers are offline. Bring it to ${STORE.street}.`
             : `Collected at ${STORE.name}.`}
         </p>
 
@@ -59,6 +60,9 @@ function ReceiptPage() {
             <OrderQr order={order} />
             <p className="font-display mt-4 text-3xl tracking-wide">{order.number}</p>
             <p className="mt-1 text-sm text-muted-foreground">Pay at the shop. This code is the order.</p>
+            <div className="mt-5 text-left">
+              <TicketActions order={order} />
+            </div>
           </div>
         ) : null}
 

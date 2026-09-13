@@ -26,7 +26,6 @@ export function nid(prefix: string) {
 export const TAX_RATE = 0.075;
 export const FREE_DELIVERY_AT = ngn(25000);
 export const DELIVERY_FEE = ngn(1500);
-export const STAFF_PIN = "1234";
 export const TRANSFER_BANK = "GTBank";
 export const TRANSFER_ACCOUNT = "0123456789";
 export const TRANSFER_NAME = "Paynote Markets Limited";

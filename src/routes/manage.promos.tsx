@@ -31,7 +31,7 @@ function PromosPage() {
       percentOff: Number(percent) || undefined,
       active: true,
     });
-    toast.success("Promo saved");
+    toast.success("Promo saved. Shop checkout will use it.");
     setCode("");
     setLabel("");
   }

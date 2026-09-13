@@ -48,7 +48,7 @@ function Home() {
             Shop what we have in stock today.
           </h1>
           <p className="mt-4 max-w-lg text-muted-foreground">
-            Place an order here, then come to {STORE.street} with your code. We pack it, you pay at the counter.
+            Place an order here, then come to {STORE.street} with your code. The QR holds the full order as JSON, so we can pack it even if we are offline. You pay at the counter.
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
             <Button asChild>

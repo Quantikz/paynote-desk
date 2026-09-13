@@ -69,7 +69,8 @@ function CatalogPage() {
       name: form.name.trim(),
       priceCents: Math.max(1, Math.round(form.priceCents)),
     });
-    toast.success("Product saved. The shop will update now.");
+    toast.success("Product saved. Publishing to the shop.");
+    void import("@/components/hydrate").then(({ pushShelf }) => pushShelf());
     setOpen(false);
   }
 

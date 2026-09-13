@@ -1,7 +1,9 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ManageShell } from "@/components/shell";
-import { StaffGate, staffUnlocked } from "@/components/staff-gate";
+import { StaffGate } from "@/components/staff-gate";
+import { clearStaffSession, staffToken, staffUnlocked } from "@/lib/staff-session";
+import { verifyStaffSession } from "@/lib/staff-server";
 
 export const Route = createFileRoute("/manage")({
   head: () => ({
@@ -16,11 +18,34 @@ export const Route = createFileRoute("/manage")({
 
 function ManageLayout() {
   const [open, setOpen] = useState(false);
+
   useEffect(() => {
     document.documentElement.classList.add("admin-root");
-    if (staffUnlocked()) setOpen(true);
-    return () => document.documentElement.classList.remove("admin-root");
+    let live = true;
+    async function check() {
+      if (!staffUnlocked()) {
+        if (live) setOpen(false);
+        return;
+      }
+      const token = staffToken();
+      const result = await verifyStaffSession({ data: { token } });
+      if (!live) return;
+      if (!result.ok) {
+        clearStaffSession();
+        setOpen(false);
+        return;
+      }
+      setOpen(true);
+    }
+    void check();
+    const pulse = window.setInterval(() => void check(), 20000);
+    return () => {
+      live = false;
+      window.clearInterval(pulse);
+      document.documentElement.classList.remove("admin-root");
+    };
   }, []);
+
   if (!open) {
     return <StaffGate onUnlock={() => setOpen(true)} />;
   }
