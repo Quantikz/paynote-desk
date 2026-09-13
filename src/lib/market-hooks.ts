@@ -1,9 +1,10 @@
 import { useMemo } from "react";
 import type { Product } from "@/lib/catalog";
+import { DEFAULT_SHOP } from "@/lib/shop";
 import { useMarket } from "@/lib/store";
 
 export function useShop() {
-  return useMarket((state) => state.shop);
+  return useMarket((state) => state.shop) ?? DEFAULT_SHOP;
 }
 
 export function useLiveProducts() {

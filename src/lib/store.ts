@@ -13,7 +13,7 @@ import {
   type Promo,
   type StockMove,
 } from "@/lib/catalog";
-import { DEFAULT_SHOP, type ShopProfile } from "@/lib/shop";
+import { DEFAULT_SHOP, normalizeShop, type ShopProfile } from "@/lib/shop";
 import { nid, slugify, TAX_RATE, ngn } from "@/lib/money";
 
 export type CheckoutInput = {
@@ -360,11 +360,11 @@ export const useMarket = create<MarketState>()(
           products,
           promos,
           shelfVersion: version,
-          ...(shop ? { shop } : {}),
+          ...(shop ? { shop: normalizeShop(shop) } : {}),
         });
         get().pruneCart();
       },
-      applyShop: (shop) => set({ shop }),
+      applyShop: (shop) => set({ shop: normalizeShop(shop) }),
       pruneCart: () => {
         const { cart, products } = get();
         const next = cart
@@ -391,6 +391,14 @@ export const useMarket = create<MarketState>()(
     {
       name: "paynote-ng-v1",
       skipHydration: true,
+      merge: (persisted, current) => {
+        const saved = (persisted ?? {}) as Partial<MarketState>;
+        return {
+          ...current,
+          ...saved,
+          shop: normalizeShop(saved.shop ?? current.shop),
+        };
+      },
       partialize: (state) => ({
         products: state.products,
         cart: state.cart,

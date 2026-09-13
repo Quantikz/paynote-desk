@@ -206,6 +206,29 @@
   display: none;
 }
 
+@media print {
+  header,
+  footer,
+  nav,
+  .no-print,
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+
+  html,
+  body,
+  #app {
+    background: #fff;
+    color: #111;
+  }
+
+  .receipt-ticket {
+    box-shadow: none;
+    max-width: 80mm;
+    margin: 0 auto;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .stagger-in,
   .stagger-in > * {

@@ -121,7 +121,7 @@ function ManageOrdersPage() {
 
       <Dialog open={Boolean(open)} onOpenChange={(v) => !v && setOpen(null)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto p-0">
-          <DialogHeader className="px-5 pt-5">
+          <DialogHeader className="no-print px-5 pt-5">
             <DialogTitle>Note</DialogTitle>
           </DialogHeader>
           {open ? (

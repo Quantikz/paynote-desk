@@ -6,7 +6,7 @@ import { useShop } from "@/lib/market-hooks";
 import { downloadTicketFile, prettyTicket } from "@/lib/ticket";
 
 export function TicketActions({ order }: { order: Order }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const shop = useShop();
   const json = prettyTicket(order, shop);
 

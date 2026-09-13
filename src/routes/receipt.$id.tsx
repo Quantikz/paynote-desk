@@ -47,18 +47,20 @@ function ReceiptPage() {
   return (
     <StorefrontShell>
       <div className="mx-auto max-w-xl px-4 py-8">
-        <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">Collection ticket</p>
-        <h1 className="font-display mt-1 text-4xl">
-          {waiting ? "Show this code at the shop" : STATUS_LABEL[order.status]}
-        </h1>
-        <p className="mt-2 text-muted-foreground">
-          {waiting
-            ? `The code is the full order as JSON — name, phone, every item, prices, VAT, and total. The desk can pack and collect ${money(order.totalCents)} even if the shop computers are offline. Bring it to ${shop.street}.`
-            : `Collected at ${shop.name}.`}
-        </p>
+        <div className="no-print">
+          <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">Collection ticket</p>
+          <h1 className="font-display mt-1 text-4xl">
+            {waiting ? "Show this code at the shop" : STATUS_LABEL[order.status]}
+          </h1>
+          <p className="mt-2 text-muted-foreground">
+            {waiting
+              ? `The code is the full order as JSON — name, phone, every item, prices, VAT, and total. The desk can pack and collect ${money(order.totalCents)} even if the shop computers are offline. Bring it to ${shop.street}.`
+              : `Collected at ${shop.name}.`}
+          </p>
+        </div>
 
         {waiting ? (
-          <div className="mt-6 rounded-xl bg-card px-5 py-6 text-center shadow-[var(--shadow-border)]">
+          <div className="no-print mt-6 rounded-xl bg-card px-5 py-6 text-center shadow-[var(--shadow-border)]">
             <OrderQr order={order} />
             <p className="font-display mt-4 text-3xl tracking-wide">{order.number}</p>
             <p className="mt-1 text-sm text-muted-foreground">Pay at the shop. This code is the order.</p>
@@ -71,7 +73,7 @@ function ReceiptPage() {
         <div className="mt-6">
           <ReceiptView order={order} />
         </div>
-        <div className="mt-6 flex flex-wrap gap-2">
+        <div className="no-print mt-6 flex flex-wrap gap-2">
           <Button asChild>
             <Link to="/orders">My orders</Link>
           </Button>
