@@ -21,6 +21,7 @@ import { Route as ManageCompanyRouteImport } from './routes/manage.company'
 import { Route as ManageCustomersRouteImport } from './routes/manage.customers'
 import { Route as ManageInventoryRouteImport } from './routes/manage.inventory'
 import { Route as ManageOrdersRouteImport } from './routes/manage.orders'
+import { Route as ManagePerformanceRouteImport } from './routes/manage.performance'
 import { Route as ManagePromosRouteImport } from './routes/manage.promos'
 import { Route as ManageRegisterRouteImport } from './routes/manage.register'
 import { Route as ManageRunRouteImport } from './routes/manage.run'
@@ -88,6 +89,11 @@ const ManageOrdersRoute = ManageOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => ManageRoute,
 } as any)
+const ManagePerformanceRoute = ManagePerformanceRouteImport.update({
+  id: '/performance',
+  path: '/performance',
+  getParentRoute: () => ManageRoute,
+} as any)
 const ManagePromosRoute = ManagePromosRouteImport.update({
   id: '/promos',
   path: '/promos',
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/manage/customers': typeof ManageCustomersRoute
   '/manage/inventory': typeof ManageInventoryRoute
   '/manage/orders': typeof ManageOrdersRoute
+  '/manage/performance': typeof ManagePerformanceRoute
   '/manage/promos': typeof ManagePromosRoute
   '/manage/register': typeof ManageRegisterRoute
   '/manage/run': typeof ManageRunRoute
@@ -150,6 +157,7 @@ export interface FileRoutesByTo {
   '/manage/customers': typeof ManageCustomersRoute
   '/manage/inventory': typeof ManageInventoryRoute
   '/manage/orders': typeof ManageOrdersRoute
+  '/manage/performance': typeof ManagePerformanceRoute
   '/manage/promos': typeof ManagePromosRoute
   '/manage/register': typeof ManageRegisterRoute
   '/manage/run': typeof ManageRunRoute
@@ -171,6 +179,7 @@ export interface FileRoutesById {
   '/manage/customers': typeof ManageCustomersRoute
   '/manage/inventory': typeof ManageInventoryRoute
   '/manage/orders': typeof ManageOrdersRoute
+  '/manage/performance': typeof ManagePerformanceRoute
   '/manage/promos': typeof ManagePromosRoute
   '/manage/register': typeof ManageRegisterRoute
   '/manage/run': typeof ManageRunRoute
@@ -193,6 +202,7 @@ export interface FileRouteTypes {
     | '/manage/customers'
     | '/manage/inventory'
     | '/manage/orders'
+    | '/manage/performance'
     | '/manage/promos'
     | '/manage/register'
     | '/manage/run'
@@ -212,6 +222,7 @@ export interface FileRouteTypes {
     | '/manage/customers'
     | '/manage/inventory'
     | '/manage/orders'
+    | '/manage/performance'
     | '/manage/promos'
     | '/manage/register'
     | '/manage/run'
@@ -232,6 +243,7 @@ export interface FileRouteTypes {
     | '/manage/customers'
     | '/manage/inventory'
     | '/manage/orders'
+    | '/manage/performance'
     | '/manage/promos'
     | '/manage/register'
     | '/manage/run'
@@ -338,6 +350,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManageOrdersRouteImport
       parentRoute: typeof ManageRoute
     }
+    '/manage/performance': {
+      id: '/manage/performance'
+      path: '/performance'
+      fullPath: '/manage/performance'
+      preLoaderRoute: typeof ManagePerformanceRouteImport
+      parentRoute: typeof ManageRoute
+    }
     '/manage/promos': {
       id: '/manage/promos'
       path: '/promos'
@@ -389,6 +408,7 @@ interface ManageRouteChildren {
   ManageCustomersRoute: typeof ManageCustomersRoute
   ManageInventoryRoute: typeof ManageInventoryRoute
   ManageOrdersRoute: typeof ManageOrdersRoute
+  ManagePerformanceRoute: typeof ManagePerformanceRoute
   ManagePromosRoute: typeof ManagePromosRoute
   ManageRegisterRoute: typeof ManageRegisterRoute
   ManageRunRoute: typeof ManageRunRoute
@@ -402,6 +422,7 @@ const ManageRouteChildren: ManageRouteChildren = {
   ManageCustomersRoute: ManageCustomersRoute,
   ManageInventoryRoute: ManageInventoryRoute,
   ManageOrdersRoute: ManageOrdersRoute,
+  ManagePerformanceRoute: ManagePerformanceRoute,
   ManagePromosRoute: ManagePromosRoute,
   ManageRegisterRoute: ManageRegisterRoute,
   ManageRunRoute: ManageRunRoute,

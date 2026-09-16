@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import {
   SEED_ORDERS,
   SEED_PRODUCTS,
@@ -15,7 +15,6 @@ import {
 } from "@/lib/catalog";
 import { DEFAULT_SHOP, normalizeShop, type ShopProfile } from "@/lib/shop";
 import { nid, slugify, TAX_RATE, ngn } from "@/lib/money";
-import { localPersistStorage } from "@/lib/local-db";
 
 export type CheckoutInput = {
   fulfillment: Fulfillment;
@@ -66,6 +65,13 @@ type MarketState = {
   collectOrder: (id: string, payment: PayMethod) => { error?: string };
   acceptTicket: (order: Order) => Order;
   applyShelf: (products: Product[], promos: Promo[], version: number, shop?: ShopProfile) => void;
+  applyLedger: (
+    products: Product[],
+    promos: Promo[],
+    orders: Order[],
+    version: number,
+    shop?: ShopProfile,
+  ) => void;
   applyShop: (shop: ShopProfile) => void;
   shop: ShopProfile;
   shelfVersion: number;
@@ -208,6 +214,7 @@ export const useMarket = create<MarketState>()(
             unit: line.product.unit,
             qty: line.qty,
             priceCents: line.product.priceCents,
+            costCents: line.product.costCents ?? 0,
           })),
           subtotalCents,
           discountCents,
@@ -285,11 +292,13 @@ export const useMarket = create<MarketState>()(
       upsertProduct: (product) =>
         set((state) => {
           const id = product.id || slugify(product.name) || nid("p");
-          const next = { ...product, id };
+          const next: Product = {
+            ...product,
+            id,
+            priceCents: Math.max(1, Math.round(product.priceCents || 0)),
+            costCents: Math.max(0, Math.round(product.costCents || 0)),
+          };
           const exists = state.products.some((item) => item.id === id);
-          void import("@/lib/local-db").then(({ saveProductImage }) =>
-            saveProductImage(id, next.image),
-          );
           return {
             products: exists
               ? state.products.map((item) => (item.id === id ? next : item))
@@ -358,6 +367,29 @@ export const useMarket = create<MarketState>()(
         }));
         return order;
       },
+      applyLedger: (
+        products: Product[],
+        promos: Promo[],
+        orders: Order[],
+        version: number,
+        shop?: ShopProfile,
+      ) => {
+        const previous = get().products;
+        set({
+          products: products.map((product) => {
+            const local = previous.find((item) => item.id === product.id);
+            return {
+              ...product,
+              image: product.image || local?.image,
+            };
+          }),
+          promos,
+          orders,
+          shelfVersion: version,
+          ...(shop ? { shop: normalizeShop(shop) } : {}),
+        });
+        get().pruneCart();
+      },
       applyShelf: (products, promos, version, shop) => {
         if (!products.length || version <= get().shelfVersion) return;
         const previous = get().products;
@@ -401,26 +433,19 @@ export const useMarket = create<MarketState>()(
     }),
     {
       name: "paynote-ng-v1",
-      storage: localPersistStorage,
+      storage: createJSONStorage(() => localStorage),
       skipHydration: true,
       merge: (persisted, current) => {
-        const saved = (persisted ?? {}) as Partial<MarketState>;
+        const saved = (persisted ?? {}) as Partial<Pick<MarketState, "cart" | "saved">>;
         return {
           ...current,
-          ...saved,
-          shop: normalizeShop(saved.shop ?? current.shop),
+          cart: Array.isArray(saved.cart) ? saved.cart : current.cart,
+          saved: Array.isArray(saved.saved) ? saved.saved : current.saved,
         };
       },
       partialize: (state) => ({
-        products: state.products,
         cart: state.cart,
         saved: state.saved,
-        orders: state.orders,
-        promos: state.promos,
-        moves: state.moves,
-        orderSeq: state.orderSeq,
-        shop: state.shop,
-        shelfVersion: state.shelfVersion,
       }),
     },
   ),

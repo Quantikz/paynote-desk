@@ -37,6 +37,7 @@ export type Product = {
   subtitle: string;
   category: CategoryId;
   priceCents: number;
+  costCents: number;
   compareAtCents?: number;
   unit: string;
   stock: number;
@@ -70,6 +71,7 @@ export type OrderItem = {
   unit: string;
   qty: number;
   priceCents: number;
+  costCents?: number;
 };
 
 export type Order = {
@@ -183,6 +185,7 @@ function sku(
     plate,
     ...extra,
     priceCents: extra.priceCents ?? ngn(price),
+    costCents: extra.costCents ?? ngn(Math.round(price * 0.65)),
   };
 }
 
@@ -298,6 +301,14 @@ export const SEED_PROMOS: Promo[] = [
   { code: "N2K", label: "₦2,000 off any order", amountOffCents: ngn(2000), active: true },
   { code: "BIG15", label: "15% off from ₦15,000", percentOff: 15, active: true },
 ];
+
+export function orderCogs(order: Order) {
+  return order.items.reduce((n, item) => n + (item.costCents ?? 0) * item.qty, 0);
+}
+
+export function orderProfit(order: Order) {
+  return order.subtotalCents - order.discountCents - orderCogs(order);
+}
 
 export function categoryLabel(id: string) {
   return CATEGORIES.find((c) => c.id === id)?.label ?? id;

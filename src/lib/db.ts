@@ -1,3 +1,5 @@
+import { mkdirSync } from "node:fs";
+import { resolve } from "node:path";
 import { pendingMigrations } from "../../scripts/migration-plan.mjs";
 
 /** Which database backend is active. */
@@ -14,6 +16,18 @@ function resolveDatabaseUrl(): string | undefined {
   return undefined;
 }
 const databaseUrl = resolveDatabaseUrl();
+
+function localDataDir() {
+  const fromEnv = process.env.PAYNOTE_DATA?.trim();
+  const dir = fromEnv || resolve(process.cwd(), "data", "paynote");
+  mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
+export function dataDir(): string {
+  if (databaseUrl) return "hosted";
+  return localDataDir();
+}
 
 /**
  * Active backend: real **Neon** when `DATABASE_URL` is set (deployed / configured
@@ -153,12 +167,13 @@ async function createPgliteSql(): Promise<Sql> {
   globalRef.__pgliteInstance__ ??= (async () => {
     const { PGlite } = await import("@electric-sql/pglite");
     const pg = new PGlite({
+      dataDir: localDataDir(),
       parsers: {
         [OID_INT8]: Number,
         [OID_DATE]: identity,
         [OID_INTERVAL]: identity,
       },
-    });
+    } as never);
     await pg.waitReady;
     await pg.exec(
       "create table if not exists _migrations (name text primary key, applied_at timestamptz not null default now())",

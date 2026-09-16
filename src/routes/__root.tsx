@@ -1,6 +1,7 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
+import { DoorGate } from "@/components/door-gate";
 import { HydrateGate } from "@/components/hydrate";
 import { ShopTheme } from "@/components/shop-theme";
 import { SurfaceGate } from "@/components/surface-gate";
@@ -24,10 +25,6 @@ export const Route = createRootRoute({
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "stylesheet", href: appCss },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,500;1,6..72,600&family=Outfit:wght@400;500;600;700&display=swap",
-      },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
     ],
@@ -42,9 +39,11 @@ export const Route = createRootRoute({
         <AuthProvider>
           <HydrateGate>
             <ShopTheme />
-            <SurfaceGate>
-              <Outlet />
-            </SurfaceGate>
+            <DoorGate>
+              <SurfaceGate>
+                <Outlet />
+              </SurfaceGate>
+            </DoorGate>
             <Toaster
               position="top-center"
               toastOptions={{

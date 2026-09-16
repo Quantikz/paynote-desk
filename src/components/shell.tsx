@@ -12,6 +12,7 @@ import {
   Search,
   ShoppingBag,
   Store,
+  TrendingUp,
   Warehouse,
 } from "lucide-react";
 import { CartDrawer } from "@/components/cart-drawer";
@@ -29,6 +30,7 @@ import { cn } from "@/lib/utils";
 const MANAGE = [
   { to: "/manage/scan", label: "Scan", icon: ScanLine },
   { to: "/manage", label: "Sales", icon: LayoutDashboard },
+  { to: "/manage/performance", label: "Performance", icon: TrendingUp },
   { to: "/manage/catalog", label: "Products", icon: Package },
   { to: "/manage/inventory", label: "Stock", icon: Warehouse },
   { to: "/manage/orders", label: "Orders", icon: ClipboardList },

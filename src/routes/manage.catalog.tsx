@@ -37,6 +37,7 @@ const emptyForm = (): Product => ({
   subtitle: "",
   category: "produce",
   priceCents: ngn(1500),
+  costCents: ngn(900),
   unit: "piece",
   stock: 12,
   reorderAt: 4,
@@ -73,8 +74,9 @@ function CatalogPage() {
       sku: form.sku.trim() || `PN-${id.slice(0, 6).toUpperCase()}`,
       name: form.name.trim(),
       priceCents: Math.max(1, Math.round(form.priceCents)),
+      costCents: Math.max(0, Math.round(form.costCents || 0)),
     });
-    toast.success("Product saved on this phone.");
+    toast.success("Product saved on this computer.");
     void import("@/components/hydrate").then(({ pushShelf }) => pushShelf());
     setOpen(false);
   }
@@ -99,7 +101,7 @@ function CatalogPage() {
           <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">Catalog</p>
           <h1 className="font-display text-4xl">Products</h1>
           <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-            Add a photo with each item. The catalog stays on this phone, so the desk still works without internet.
+            Add a photo and the buying cost with each item. The catalog is the shop database on this computer.
           </p>
         </div>
         <Button
@@ -129,6 +131,7 @@ function CatalogPage() {
                 <th className="px-4 py-3 font-medium">Product</th>
                 <th className="px-4 py-3 font-medium">Aisle</th>
                 <th className="px-4 py-3 font-medium">Price</th>
+                <th className="px-4 py-3 font-medium">Cost</th>
                 <th className="px-4 py-3 font-medium">Stock</th>
                 <th className="px-4 py-3 font-medium">Flags</th>
               </tr>
@@ -154,6 +157,9 @@ function CatalogPage() {
                   </td>
                   <td className="px-4 py-3 capitalize">{product.category}</td>
                   <td className="px-4 py-3 tabular-nums">{money(product.priceCents)}</td>
+                  <td className="px-4 py-3 tabular-nums text-muted-foreground">
+                    {money(product.costCents ?? 0)}
+                  </td>
                   <td className="px-4 py-3 tabular-nums">{product.stock}</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">
@@ -174,7 +180,7 @@ function CatalogPage() {
           <DialogHeader>
             <DialogTitle>{form.id ? "Edit product" : "Add product"}</DialogTitle>
             <DialogDescription>
-              Price is in naira. Photos are kept on this phone with the rest of the shop.
+            Photos stay with the product in the shop book on this computer.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-3">
@@ -279,23 +285,29 @@ function CatalogPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <Field
-                label="Price (₦)"
+                label="Selling price (₦)"
                 type="number"
                 value={String(form.priceCents / 100)}
                 onChange={(v) => setForm({ ...form, priceCents: Math.round(Number(v) * 100) })}
               />
               <Field
-                label="Compare at"
+                label="Buying cost (₦)"
                 type="number"
-                value={form.compareAtCents ? String(form.compareAtCents / 100) : ""}
-                onChange={(v) =>
-                  setForm({
-                    ...form,
-                    compareAtCents: v ? Math.round(Number(v) * 100) : undefined,
-                  })
-                }
+                value={String((form.costCents ?? 0) / 100)}
+                onChange={(v) => setForm({ ...form, costCents: Math.round(Number(v) * 100) })}
               />
             </div>
+            <Field
+              label="Compare at"
+              type="number"
+              value={form.compareAtCents ? String(form.compareAtCents / 100) : ""}
+              onChange={(v) =>
+                setForm({
+                  ...form,
+                  compareAtCents: v ? Math.round(Number(v) * 100) : undefined,
+                })
+              }
+            />
             <div className="grid grid-cols-2 gap-3">
               <Field
                 label="Stock"

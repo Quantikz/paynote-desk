@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")"
+export PAYNOTE_DATA="${PAYNOTE_DATA:-${XDG_DATA_HOME:-$HOME/.local/share}/Paynote/database}"
+export PAYNOTE_PORT="${PAYNOTE_PORT:-8080}"
+if [ -x node_modules/.bin/electron ]; then
+  exec node_modules/.bin/electron desktop/main.cjs
+fi
+exec node scripts/start-store.mjs

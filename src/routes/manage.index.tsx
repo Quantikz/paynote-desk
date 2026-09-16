@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { format, parseISO } from "date-fns";
-import { Building2, RotateCcw, ScanLine, Store } from "lucide-react";
+import { Building2, RotateCcw, ScanLine, Store, TrendingUp } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
   Bar,
@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { isRecordedSale, saleKind } from "@/lib/catalog";
+import { isRecordedSale, orderProfit, saleKind } from "@/lib/catalog";
 import { money } from "@/lib/money";
 import { useShop } from "@/lib/market-hooks";
 import { useMarket } from "@/lib/store";
@@ -34,6 +34,7 @@ function ManageHome() {
   const todayOrders = live.filter((o) => o.createdAt.slice(0, 10) === todayIso);
   const revenue = live.reduce((n, o) => n + o.totalCents, 0);
   const todayRev = todayOrders.reduce((n, o) => n + o.totalCents, 0);
+  const profit = live.reduce((n, o) => n + orderProfit(o), 0);
   const low = products.filter((p) => p.active && p.stock <= p.reorderAt);
 
   const chart = useMemo(() => {
@@ -90,6 +91,12 @@ function ManageHome() {
             </Link>
           </Button>
           <Button asChild variant="outline">
+            <Link to="/manage/performance">
+              <TrendingUp className="size-4" />
+              Performance
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
             <Link to="/manage/company">
               <Building2 className="size-4" />
               Company
@@ -110,8 +117,8 @@ function ManageHome() {
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="All sales" value={money(revenue)} />
+        <Stat label="Gross profit" value={money(profit)} hint="Sales minus buying cost" />
         <Stat label="Today" value={money(todayRev)} hint={`${todayOrders.length} recorded`} />
-        <Stat label="Recorded" value={String(live.length)} />
         <Stat label="Low stock" value={String(low.length)} hint="Need to restock" />
       </div>
 
