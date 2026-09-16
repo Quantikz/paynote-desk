@@ -84,7 +84,7 @@ function ScanPage() {
       toast.error(result.error);
       return;
     }
-    toast.success(`Collected ${order.number} · ${money(order.totalCents)} · ${PAY_LABEL[pay]}`);
+    toast.success(`Recorded ${order.number} · ${money(order.totalCents)} · ${PAY_LABEL[pay]}`);
     setLoaded(null);
     setFromJson(false);
     setTampered(false);
@@ -104,7 +104,7 @@ function ScanPage() {
           <p className="text-xs font-medium tracking-[0.2em] text-muted-foreground uppercase">Secure desk</p>
           <h1 className="text-3xl font-semibold tracking-tight">Scan customer code</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            The QR holds the complete order JSON — items, prices, customer, VAT, total. Load it even if the shop database is down.
+            The QR holds the complete order. Scan it to record what they brought. Works on this phone even without internet.
           </p>
         </div>
         <QrScanner onRead={onRead} paused={Boolean(order)} onReset={reset} />
@@ -222,7 +222,7 @@ function ScanPage() {
                   ))}
                 </div>
                 <Button className="w-full" size="lg" onClick={collect}>
-                  Pack, collect {money(order.totalCents)}
+                  Record {money(order.totalCents)}
                 </Button>
               </>
             )}

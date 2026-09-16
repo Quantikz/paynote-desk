@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useShop } from "@/lib/market-hooks";
-import { saveStaffSession, staffUnlocked } from "@/lib/staff-session";
+import { hasLocalStaffPin, localPinMatches, rememberStaffPin, saveLocalStaffSession, saveStaffSession } from "@/lib/staff-session";
 import { verifyStaffPin } from "@/lib/staff-server";
 
 export { staffUnlocked } from "@/lib/staff-session";
@@ -26,15 +26,32 @@ export function StaffGate({ onUnlock }: { onUnlock: () => void }) {
     if (busy) return;
     setBusy(true);
     setError("");
-    const result = await verifyStaffPin({ data: { pin: pin.trim() } });
-    setBusy(false);
-    if (!result.ok) {
-      setError(result.error);
+    const trimmed = pin.trim();
+    try {
+      const result = await verifyStaffPin({ data: { pin: trimmed } });
+      setBusy(false);
+      if (!result.ok) {
+        setError(result.error);
+        setPin("");
+        return;
+      }
+      await rememberStaffPin(trimmed);
+      saveStaffSession(result.token, result.expiresAt);
+      onUnlock();
+    } catch {
+      setBusy(false);
+      if (await localPinMatches(trimmed)) {
+        saveLocalStaffSession();
+        onUnlock();
+        return;
+      }
+      setError(
+        hasLocalStaffPin()
+          ? "Wrong PIN."
+          : "Unlock once while online, then this phone can open the desk without internet.",
+      );
       setPin("");
-      return;
     }
-    saveStaffSession(result.token, result.expiresAt);
-    onUnlock();
   }
 
   return (
@@ -51,7 +68,7 @@ export function StaffGate({ onUnlock }: { onUnlock: () => void }) {
         </p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">{shop.name} desk</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Staff only. PIN is checked on the server. Five wrong tries lock the desk for five minutes. Session ends after 30 minutes.
+          Staff only. After the first unlock, this phone can open the desk without internet. Session ends after 30 minutes.
         </p>
         <div className="mt-6">
           <Label htmlFor="pin">Staff PIN</Label>

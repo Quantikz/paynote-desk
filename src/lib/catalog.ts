@@ -97,6 +97,15 @@ export type Order = {
   payment?: PayMethod;
 };
 
+export function isRecordedSale(order: Order) {
+  if (order.status === "cancelled") return false;
+  return Boolean(order.walkIn) || order.status === "delivered";
+}
+
+export function saleKind(order: Order): "scan" | "store" {
+  return order.walkIn ? "store" : "scan";
+}
+
 export type Promo = {
   code: string;
   label: string;

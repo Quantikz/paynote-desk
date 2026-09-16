@@ -27,10 +27,6 @@ const MANAGE = [
   { to: "/manage/catalog", label: "Products" },
   { to: "/manage/inventory", label: "Stock" },
   { to: "/manage/orders", label: "Orders" },
-  { to: "/manage/run", label: "Packing" },
-  { to: "/manage/register", label: "Walk-in" },
-  { to: "/manage/customers", label: "Customers" },
-  { to: "/manage/promos", label: "Promos" },
   { to: "/manage/company", label: "Company" },
 ] as const;
 
@@ -262,7 +258,7 @@ function TabLink({
   label,
   active,
 }: {
-  to: "/" | "/orders" | "/manage" | "/manage/orders" | "/manage/catalog" | "/manage/register" | "/manage/scan";
+  to: "/" | "/orders" | "/manage" | "/manage/orders" | "/manage/catalog" | "/manage/scan";
   icon: typeof Store;
   label: string;
   active: boolean;

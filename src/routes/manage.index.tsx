@@ -11,7 +11,7 @@ import {
 } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { STATUS_LABEL } from "@/lib/catalog";
+import { isRecordedSale, saleKind } from "@/lib/catalog";
 import { money } from "@/lib/money";
 import { useShop } from "@/lib/market-hooks";
 import { useMarket } from "@/lib/store";
@@ -28,16 +28,19 @@ function ManageHome() {
   const [chartOn, setChartOn] = useState(false);
   useEffect(() => setChartOn(true), []);
 
-  const live = orders.filter((o) => o.status !== "cancelled");
-  const todayIso = "2026-09-13";
+  const live = orders.filter(isRecordedSale);
+  const todayIso = new Date().toISOString().slice(0, 10);
   const todayOrders = live.filter((o) => o.createdAt.slice(0, 10) === todayIso);
   const revenue = live.reduce((n, o) => n + o.totalCents, 0);
   const todayRev = todayOrders.reduce((n, o) => n + o.totalCents, 0);
   const low = products.filter((p) => p.active && p.stock <= p.reorderAt);
-  const open = orders.filter((o) => ["placed", "packing", "ready", "out"].includes(o.status));
 
   const chart = useMemo(() => {
-    const days = ["09", "10", "11", "12", "13"].map((d) => `2026-09-${d}`);
+    const days = Array.from({ length: 5 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (4 - i));
+      return d.toISOString().slice(0, 10);
+    });
     return days.map((day) => {
       const slice = live.filter((o) => o.createdAt.slice(0, 10) === day);
       return {
@@ -74,10 +77,12 @@ function ManageHome() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild>
-            <Link to="/manage/scan">Scan a code</Link>
+            <Link to="/manage/scan">Scan a ticket</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link to="/manage/run">Packing list</Link>
+            <Link to="/manage/orders" search={{ sale: true }}>
+              Store sale
+            </Link>
           </Button>
           <Button asChild variant="outline">
             <Link to="/manage/company">Company</Link>
@@ -96,8 +101,8 @@ function ManageHome() {
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="All sales" value={money(revenue)} />
-        <Stat label="Today" value={money(todayRev)} hint={`${todayOrders.length} orders`} />
-        <Stat label="Open orders" value={String(open.length)} />
+        <Stat label="Today" value={money(todayRev)} hint={`${todayOrders.length} recorded`} />
+        <Stat label="Recorded" value={String(live.length)} />
         <Stat label="Low stock" value={String(low.length)} hint="Need to restock" />
       </div>
 
@@ -159,22 +164,23 @@ function ManageHome() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader className="flex-row items-center justify-between">
-            <CardTitle>Queue</CardTitle>
+            <CardTitle>Recent records</CardTitle>
             <Button asChild variant="ghost" size="sm">
               <Link to="/manage/orders">Open</Link>
             </Button>
           </CardHeader>
           <CardContent>
-            {open.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No open orders.</p>
+            {live.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Scan a ticket or record a store sale.</p>
             ) : (
               <ul className="space-y-3">
-                {open.slice(0, 6).map((order) => (
+                {live.slice(0, 6).map((order) => (
                   <li key={order.id} className="flex items-center justify-between gap-3 text-sm">
                     <span>
                       <span className="font-medium">{order.number}</span>
                       <span className="block text-muted-foreground">
-                        {STATUS_LABEL[order.status]} · {order.customer.name}
+                        {saleKind(order) === "store" ? "Store" : "Scanned"} ·{" "}
+                        {saleKind(order) === "store" ? "counter" : order.customer.name}
                       </span>
                     </span>
                     <span className="tabular-nums">{money(order.totalCents)}</span>

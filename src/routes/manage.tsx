@@ -2,7 +2,7 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ManageShell } from "@/components/shell";
 import { StaffGate } from "@/components/staff-gate";
-import { clearStaffSession, staffToken, staffUnlocked } from "@/lib/staff-session";
+import { clearStaffSession, isLocalStaffToken, staffToken, staffUnlocked } from "@/lib/staff-session";
 import { verifyStaffSession } from "@/lib/staff-server";
 
 export const Route = createFileRoute("/manage")({
@@ -28,14 +28,22 @@ function ManageLayout() {
         return;
       }
       const token = staffToken();
-      const result = await verifyStaffSession({ data: { token } });
-      if (!live) return;
-      if (!result.ok) {
-        clearStaffSession();
-        setOpen(false);
+      if (isLocalStaffToken(token) || !navigator.onLine) {
+        if (live) setOpen(true);
         return;
       }
-      setOpen(true);
+      try {
+        const result = await verifyStaffSession({ data: { token } });
+        if (!live) return;
+        if (!result.ok) {
+          clearStaffSession();
+          setOpen(false);
+          return;
+        }
+        setOpen(true);
+      } catch {
+        if (live && staffUnlocked()) setOpen(true);
+      }
     }
     void check();
     const pulse = window.setInterval(() => void check(), 20000);

@@ -28,7 +28,7 @@ export function ReceiptView({ order }: { order: Order }) {
             <span>{format(when, "h:mm a")}</span>
           </div>
           <p className="mt-1">Ticket {order.number}</p>
-          <p>{order.walkIn ? "Walk-in" : order.customer.name}</p>
+          <p>{order.walkIn ? "Store sale" : order.customer.name}</p>
           {!order.walkIn && order.customer.phone !== "—" ? (
             <p className="text-muted-foreground">{order.customer.phone}</p>
           ) : null}

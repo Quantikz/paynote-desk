@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { loadShelf, publishShelf, reserveShelf, type ShelfPayload } from "@/lib/market-server";
 import { fetchRemoteShelf, publishRemoteShelf, reserveRemoteShelf, shelfOrigin } from "@/lib/shelf-client";
-import { staffToken } from "@/lib/staff-session";
+import { isOnline } from "@/lib/offline";
+import { isLocalStaffToken, staffToken } from "@/lib/staff-session";
 import { useMarket } from "@/lib/store";
 import { surface } from "@/lib/surface";
 
@@ -13,50 +14,67 @@ function applyLive(shelf: ShelfPayload | { products: ShelfPayload["products"]; p
 }
 
 export async function pullShelf() {
-  const local = await loadShelf();
-  if (local?.version) {
-    applyLive(local);
-    return local;
-  }
-  const origin = shelfOrigin();
-  if (origin) {
-    try {
-      const remote = await fetchRemoteShelf(origin);
-      applyLive(remote);
-      return remote;
-    } catch {
+  try {
+    const local = await loadShelf();
+    if (local?.version) {
+      applyLive(local);
       return local;
     }
+    if (!isOnline()) return local;
+    const origin = shelfOrigin();
+    if (origin) {
+      try {
+        const remote = await fetchRemoteShelf(origin);
+        applyLive(remote);
+        return remote;
+      } catch {
+        return local;
+      }
+    }
+    applyLive(local);
+    return local;
+  } catch {
+    return null;
   }
-  applyLive(local);
-  return local;
 }
 
 export async function pushShelf() {
   if (typeof window === "undefined") return { ok: false as const, error: "Offline" };
   if (surface() === "shop") return { ok: false as const, error: "Shop cannot publish." };
+  if (!isOnline()) return { ok: false as const, error: "Offline — kept on this desk" };
   const token = staffToken();
-  if (!token) return { ok: false as const, error: "Unlock the desk first." };
+  if (!token || isLocalStaffToken(token)) {
+    return { ok: false as const, error: isOnline() ? "Unlock the desk while online to publish." : "Offline — kept on this desk" };
+  }
   const { products, promos, shop } = useMarket.getState();
   const origin = shelfOrigin();
-  const result = origin
-    ? await publishRemoteShelf(origin, { token, products, promos, shop })
-    : await publishShelf({ data: { token, products, promos, shop } });
-  if (result.ok && result.version) {
-    useMarket.setState({ shelfVersion: result.version });
+  try {
+    const result = origin
+      ? await publishRemoteShelf(origin, { token, products, promos, shop })
+      : await publishShelf({ data: { token, products, promos, shop } });
+    if (result.ok && result.version) {
+      useMarket.setState({ shelfVersion: result.version });
+    }
+    return result;
+  } catch {
+    return { ok: false as const, error: "Offline — kept on this desk" };
   }
-  return result;
 }
 
 export async function holdStock(items: Array<{ productId: string; qty: number }>) {
-  const origin = shelfOrigin();
-  const result = origin
-    ? await reserveRemoteShelf(origin, items)
-    : await reserveShelf({ data: { items } });
-  if (result.ok && result.shelf) {
-    applyLive(result.shelf);
+  if (!isOnline()) return { ok: false as const, error: "Offline" };
+  try {
+    const origin = shelfOrigin();
+    const result = origin
+      ? await reserveRemoteShelf(origin, items)
+      : await reserveShelf({ data: { items } });
+    if (result.ok && result.shelf) {
+      applyLive(result.shelf);
+    }
+    return result;
+  } catch {
+    return { ok: false as const, error: "Offline" };
   }
-  return result;
 }
 
 export function HydrateGate({ children }: { children: React.ReactNode }) {
@@ -77,13 +95,18 @@ export function HydrateGate({ children }: { children: React.ReactNode }) {
     window.addEventListener("storage", onStorage);
 
     const onFocus = () => {
+      if (isOnline()) void pullShelf();
+    };
+    const onOnline = () => {
       void pullShelf();
+      if (surface() !== "shop") void pushShelf();
     };
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onFocus);
+    window.addEventListener("online", onOnline);
 
     const poll = window.setInterval(() => {
-      void pullShelf();
+      if (isOnline()) void pullShelf();
     }, 3000);
 
     let timer = 0;
@@ -96,6 +119,7 @@ export function HydrateGate({ children }: { children: React.ReactNode }) {
         return;
       }
       if (surface() === "shop") return;
+      if (!isOnline()) return;
       window.clearTimeout(timer);
       timer = window.setTimeout(() => {
         void pushShelf();
@@ -106,6 +130,7 @@ export function HydrateGate({ children }: { children: React.ReactNode }) {
       window.removeEventListener("storage", onStorage);
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onFocus);
+      window.removeEventListener("online", onOnline);
       window.clearInterval(poll);
       window.clearTimeout(timer);
       unsub();
