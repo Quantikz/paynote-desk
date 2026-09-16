@@ -16,6 +16,7 @@
     "start": "node scripts/start-store.mjs",
     "desktop": "electron desktop/main.cjs",
     "pack:linux": "npm run build && electron-builder --linux dir --publish never",
+    "pack:win": "electron-builder --win zip --x64 --publish never",
     "build": "node scripts/with-app-env.mjs vite build && node scripts/bundle-pglite.mjs && npm run db:migrate",
     "db:migrate": "node scripts/migrate.mjs",
     "build:dev": "node scripts/with-app-env.mjs vite build --mode development",
@@ -135,6 +136,26 @@
     ],
     "extraMetadata": {
       "main": "desktop/main.cjs"
+    },
+    "extraFiles": [
+      {
+        "from": "desktop/STORE.txt",
+        "to": "HOW-TO-INSTALL.txt"
+      }
+    ],
+    "win": {
+      "icon": "public/__grok/icon-180.png",
+      "executableName": "Paynote",
+      "signAndEditExecutable": false,
+      "artifactName": "Paynote-Windows.${ext}",
+      "target": [
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
     },
     "linux": {
       "target": [

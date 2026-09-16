@@ -1,0 +1,30 @@
+Paynote for Windows — store computer
+====================================
+
+This is the shop program. It does not need the internet.
+Sales, stock, products, photos and profits are saved on THIS computer.
+
+Install
+-------
+1. Copy the Paynote folder onto the store PC (Desktop or C:\Paynote).
+2. Open the folder and double-click Paynote.exe.
+3. Windows may say “Windows protected your PC”. Click More info, then Run anyway.
+4. The Paynote window opens. Store password default is 1234.
+   Staff desk PIN default is 1234.
+
+Use it
+------
+- Shop and staff desk are in the same window.
+- Add products with a photo and the buying cost.
+- Performance shows profit, cost of stock sold, and stock on hand.
+- Phones on the same Wi‑Fi can open Paynote: in the window menu choose
+  Paynote → Wi‑Fi address, then type that address on the phone.
+  Use the store password (default 1234).
+
+Where data is saved
+-------------------
+C:\Users\<their-name>\AppData\Roaming\Paynote\database
+
+Keep that folder if you move the program. It is the shop book.
+
+No internet is required after it is on the PC.

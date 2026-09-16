@@ -86,10 +86,13 @@ function startServer() {
     env: {
       ...process.env,
       ELECTRON_RUN_AS_NODE: "1",
+      PAYNOTE_LOCAL: "1",
       PAYNOTE_DATA: dataDir(),
       PORT: String(PORT),
       PAYNOTE_PORT: String(PORT),
       HOST,
+      DATABASE_URL: "",
+      VERCEL: "",
     },
     stdio: "inherit",
   });

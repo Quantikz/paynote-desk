@@ -9,6 +9,8 @@ export type DbSource = "neon" | "pglite";
 // "unset" — otherwise production would silently run on the PGLite fallback.
 function resolveDatabaseUrl(): string | undefined {
   if (typeof process === "undefined") return undefined;
+  // The store program on a PC never uses the internet database.
+  if (process.env.PAYNOTE_LOCAL === "1") return undefined;
   const fromEnv = process.env.DATABASE_URL?.trim();
   if (fromEnv) return fromEnv;
   // Shop + desk Vercel sites share this claimable Neon. Preview stays on PGLite.
