@@ -1,12 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
+import { holdStock } from "@/components/hydrate";
 import { QrScanner } from "@/components/qr-scanner";
+import { QtyStepper } from "@/components/qty-stepper";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PAY_LABEL, STATUS_LABEL, type Order, type PayMethod } from "@/lib/catalog";
-import { money } from "@/lib/money";
+import {
+  findProductByScan,
+  PAY_LABEL,
+  STATUS_LABEL,
+  type CartLine,
+  type Order,
+  type PayMethod,
+  type Product,
+} from "@/lib/catalog";
+import { money, TAX_RATE } from "@/lib/money";
+import { isOnline, useOnline } from "@/lib/offline";
 import { useMarket } from "@/lib/store";
 import { decodeTicket, prettyTicket } from "@/lib/ticket";
 import { cn } from "@/lib/utils";
@@ -17,13 +28,18 @@ export const Route = createFileRoute("/manage/scan")({
 
 function ScanPage() {
   const orders = useMarket((s) => s.orders);
+  const products = useMarket((s) => s.products);
   const collectOrder = useMarket((s) => s.collectOrder);
   const acceptTicket = useMarket((s) => s.acceptTicket);
+  const ringUp = useMarket((s) => s.ringUp);
+  const online = useOnline();
   const [loaded, setLoaded] = useState<Order | null>(null);
   const [fromJson, setFromJson] = useState(false);
   const [tampered, setTampered] = useState(false);
   const [typed, setTyped] = useState("");
   const [pay, setPay] = useState<PayMethod>("cash");
+  const [ticket, setTicket] = useState<CartLine[]>([]);
+  const [tender, setTender] = useState<PayMethod>("cash");
   const fileRef = useRef<HTMLInputElement>(null);
   const pasteRef = useRef<HTMLInputElement>(null);
 
@@ -34,6 +50,7 @@ function ScanPage() {
         setFromJson(Boolean(decoded.fromJson));
         setTampered(Boolean(decoded.tampered));
         setLoaded(acceptTicket(decoded.order));
+        setTicket([]);
         return true;
       }
       const found = orders.find(
@@ -45,29 +62,64 @@ function ScanPage() {
         setFromJson(false);
         setTampered(false);
         setLoaded(found);
+        setTicket([]);
+        return true;
+      }
+      const product = findProductByScan(products, value);
+      if (product) {
+        addProduct(product);
         return true;
       }
       return false;
     },
-    [acceptTicket, orders],
+    [acceptTicket, orders, products],
   );
+
+  function addProduct(product: Product) {
+    if (product.stock <= 0) {
+      toast.error(`${product.name} is out of stock.`);
+      return;
+    }
+    let added = false;
+    setLoaded(null);
+    setTicket((current) => {
+      const existing = current.find((line) => line.productId === product.id);
+      const qty = (existing?.qty ?? 0) + 1;
+      if (qty > product.stock) return current;
+      added = true;
+      if (!existing) return [...current, { productId: product.id, qty: 1 }];
+      return current.map((line) => (line.productId === product.id ? { ...line, qty } : line));
+    });
+    if (added) toast.success(`${product.name} added`);
+    else toast.error(`Only ${product.stock} ${product.name} left.`);
+  }
 
   const onRead = useCallback(
     (value: string) => {
-      if (!applyRaw(value)) toast.error("That code has no order JSON on it.");
+      if (!applyRaw(value)) toast.error("No ticket or product matched that code.");
     },
     [applyRaw],
   );
 
   const order = loaded;
+  const lines = ticket
+    .map((line) => {
+      const product = products.find((item) => item.id === line.productId);
+      if (!product) return null;
+      return { product, qty: line.qty, lineCents: product.priceCents * line.qty };
+    })
+    .filter((row): row is { product: Product; qty: number; lineCents: number } => row !== null);
+  const subtotal = lines.reduce((n, line) => n + line.lineCents, 0);
+  const total = subtotal + Math.round(subtotal * TAX_RATE);
 
   function lookup() {
     const value = typed.trim() || pasteRef.current?.value.trim() || "";
     if (!value) {
-      toast.error("Scan the code, load the JSON file, or paste the ticket.");
+      toast.error("Scan a product or ticket, or type the SKU.");
       return;
     }
-    if (!applyRaw(value)) toast.error("That code has no order on it.");
+    if (!applyRaw(value)) toast.error("No ticket or product matched that.");
+    setTyped("");
   }
 
   async function onFile(file?: File | null) {
@@ -91,35 +143,76 @@ function ScanPage() {
     setTyped("");
   }
 
+  async function chargeBasket() {
+    if (ticket.length === 0) {
+      toast.error("Scan what they brought first.");
+      return;
+    }
+    const result = ringUp(ticket, {
+      fulfillment: "pickup",
+      slot: "Store · now",
+      name: "Store sale",
+      phone: "—",
+      email: "counter@paynote.ng",
+      tipCents: 0,
+      walkIn: true,
+      status: "delivered",
+      payment: tender,
+    });
+    if (result.error || !result.order) {
+      toast.error(result.error ?? "Sale did not go through.");
+      return;
+    }
+    if (isOnline()) {
+      try {
+        await holdStock(result.order.items.map((item) => ({ productId: item.productId, qty: item.qty })));
+      } catch {
+        /* local stock already moved */
+      }
+    }
+    toast.success(`Recorded ${result.order.number} · ${money(result.order.totalCents)}`);
+    setTicket([]);
+  }
+
   function reset() {
     setLoaded(null);
     setFromJson(false);
     setTampered(false);
+    setTicket([]);
   }
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <div className="space-y-4">
         <div>
-          <p className="text-xs font-medium tracking-[0.2em] text-muted-foreground uppercase">Secure desk</p>
-          <h1 className="text-3xl font-semibold tracking-tight">Scan customer code</h1>
+          <p className="text-xs font-medium tracking-[0.2em] text-muted-foreground uppercase">
+            {online ? "Counter" : "Offline · on this phone"}
+          </p>
+          <h1 className="text-3xl font-semibold tracking-tight">Scan what they brought</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            The QR holds the complete order. Scan it to record what they brought. Works on this phone even without internet.
+            Each product you scan becomes the order. A customer ticket still records their collection.
+            This phone keeps the book even without internet.
           </p>
         </div>
-        <QrScanner onRead={onRead} paused={Boolean(order)} onReset={reset} />
+        <QrScanner
+          onRead={onRead}
+          paused={Boolean(order)}
+          onReset={reset}
+          continuous={!order}
+          hint="Scan a product barcode, SKU, or the customer’s ticket."
+        />
         <div className="flex gap-2">
           <Input
             ref={pasteRef}
             value={typed}
             onChange={(e) => setTyped(e.target.value)}
-            placeholder="Paste full ticket JSON"
+            placeholder="Type SKU or paste ticket"
             onKeyDown={(e) => {
               if (e.key === "Enter") lookup();
             }}
           />
           <Button variant="outline" onClick={lookup}>
-            Load
+            Add
           </Button>
         </div>
         <div>
@@ -134,15 +227,13 @@ function ScanPage() {
             }}
           />
           <Button variant="outline" className="w-full" onClick={() => fileRef.current?.click()}>
-            Load JSON file
+            Load ticket JSON
           </Button>
         </div>
       </div>
 
       <aside className="h-fit border border-border bg-card p-5">
-        {!order ? (
-          <p className="text-sm text-muted-foreground">Waiting for a code or JSON file.</p>
-        ) : (
+        {order ? (
           <div className="space-y-4">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
@@ -153,7 +244,7 @@ function ScanPage() {
               </div>
               <div className="flex flex-wrap gap-1">
                 <Badge>{STATUS_LABEL[order.status]}</Badge>
-                {fromJson ? <Badge variant="secondary">From ticket JSON</Badge> : null}
+                {fromJson ? <Badge variant="secondary">From ticket</Badge> : null}
                 {tampered ? <Badge variant="danger">Checksum mismatch</Badge> : null}
               </div>
             </div>
@@ -162,9 +253,7 @@ function ScanPage() {
                 This JSON was edited after it was issued. Check the totals before you collect.
               </p>
             ) : fromJson ? (
-              <p className="text-sm text-muted-foreground">
-                Loaded from the code itself. No shop lookup required.
-              </p>
+              <p className="text-sm text-muted-foreground">Loaded from the code. No internet needed.</p>
             ) : null}
             <ul className="space-y-2 text-sm">
               {order.items.map((item) => (
@@ -231,6 +320,72 @@ function ScanPage() {
                 {prettyTicket(order)}
               </pre>
             ) : null}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div>
+              <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">This sale</p>
+              <h2 className="font-display text-2xl">Scanned items</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Only what you scan or tap is recorded. Store purchases use the same book.
+              </p>
+            </div>
+            {lines.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Waiting for a product or ticket.</p>
+            ) : (
+              <ul className="space-y-3">
+                {lines.map((line) => (
+                  <li key={line.product.id} className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{line.product.name}</p>
+                      <p className="text-xs text-muted-foreground tabular-nums">
+                        {line.product.sku} · {money(line.lineCents)}
+                      </p>
+                    </div>
+                    <QtyStepper
+                      value={line.qty}
+                      max={line.product.stock}
+                      onChange={(qty) =>
+                        setTicket((current) =>
+                          qty <= 0
+                            ? current.filter((item) => item.productId !== line.product.id)
+                            : current.map((item) =>
+                                item.productId === line.product.id ? { ...item, qty } : item,
+                              ),
+                        )
+                      }
+                      className="h-9"
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="grid grid-cols-3 gap-2">
+              {(["cash", "transfer", "card"] as const).map((id) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setTender(id)}
+                  className={cn(
+                    "h-11 text-sm capitalize",
+                    tender === id ? "bg-primary text-primary-foreground" : "bg-secondary",
+                  )}
+                >
+                  {id}
+                </button>
+              ))}
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">VAT 7.5%</span>
+              <span className="tabular-nums">{money(Math.round(subtotal * TAX_RATE))}</span>
+            </div>
+            <div className="flex justify-between font-medium">
+              <span>Total</span>
+              <span className="tabular-nums">{money(total)}</span>
+            </div>
+            <Button className="w-full" size="lg" onClick={() => void chargeBasket()} disabled={lines.length === 0}>
+              Record {lines.length ? money(total) : "sale"}
+            </Button>
           </div>
         )}
       </aside>

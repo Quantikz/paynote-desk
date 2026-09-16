@@ -106,6 +106,22 @@ export function saleKind(order: Order): "scan" | "store" {
   return order.walkIn ? "store" : "scan";
 }
 
+export function findProductByScan(products: Product[], raw: string): Product | undefined {
+  const code = raw.trim().toLowerCase();
+  if (!code) return undefined;
+  const compact = code.replace(/[^a-z0-9]/g, "");
+  return products.find((product) => {
+    const sku = product.sku.toLowerCase();
+    const id = product.id.toLowerCase();
+    return (
+      sku === code ||
+      id === code ||
+      sku.replace(/[^a-z0-9]/g, "") === compact ||
+      id.replace(/[^a-z0-9]/g, "") === compact
+    );
+  });
+}
+
 export type Promo = {
   code: string;
   label: string;

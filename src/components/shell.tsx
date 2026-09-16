@@ -16,6 +16,7 @@ import { SearchDialog } from "@/components/search-dialog";
 import { Wordmark } from "@/components/wordmark";
 import { Button } from "@/components/ui/button";
 import { useCartCount, useShop } from "@/lib/market-hooks";
+import { useOnline } from "@/lib/offline";
 import { clearStaffSession, staffMsLeft } from "@/lib/staff-session";
 import { useMarket } from "@/lib/store";
 import { shopUrl, surface } from "@/lib/surface";
@@ -149,6 +150,7 @@ export function StorefrontShell({ children }: { children: React.ReactNode }) {
 export function ManageShell({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [left, setLeft] = useState(staffMsLeft());
+  const online = useOnline();
 
   useEffect(() => {
     const tick = window.setInterval(() => {
@@ -175,9 +177,15 @@ export function ManageShell({ children }: { children: React.ReactNode }) {
           Restricted desk
         </span>
         <span className="font-mono tabular-nums">
+          {online ? null : "Offline · "}
           Session {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
         </span>
       </div>
+      {!online ? (
+        <div className="border-b border-border bg-secondary px-4 py-2 text-center text-sm text-secondary-foreground">
+          No internet — sales and scans stay on this phone until you are back.
+        </div>
+      ) : null}
       <header className="sticky top-0 z-40 border-b border-border bg-card">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4">
           <Wordmark to="/manage" subtitle="Staff desk" />

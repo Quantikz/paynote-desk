@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { holdStock } from "@/components/hydrate";
+import { QrScanner } from "@/components/qr-scanner";
 import { QtyStepper } from "@/components/qty-stepper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { CartLine, PayMethod, Product } from "@/lib/catalog";
+import { findProductByScan, type CartLine, type PayMethod, type Product } from "@/lib/catalog";
 import { TAX_RATE, money } from "@/lib/money";
 import { isOnline } from "@/lib/offline";
 import { useMarket } from "@/lib/store";
@@ -15,14 +16,13 @@ export function TillSale({ onSold }: { onSold?: () => void }) {
   const [q, setQ] = useState("");
   const [ticket, setTicket] = useState<CartLine[]>([]);
   const [tender, setTender] = useState<PayMethod>("cash");
+  const [camera, setCamera] = useState(false);
 
   const matches = useMemo(() => {
     const query = q.trim().toLowerCase();
     return products
       .filter((p) => p.stock > 0)
-      .filter((p) =>
-        query ? `${p.name} ${p.sku}`.toLowerCase().includes(query) : true,
-      )
+      .filter((p) => (query ? `${p.name} ${p.sku}`.toLowerCase().includes(query) : true))
       .slice(0, query ? 16 : 12);
   }, [products, q]);
 
@@ -44,19 +44,32 @@ export function TillSale({ onSold }: { onSold?: () => void }) {
       const qty = (existing?.qty ?? 0) + 1;
       if (qty > product.stock) return current;
       if (!existing) return [...current, { productId, qty: 1 }];
-      return current.map((line) =>
-        line.productId === productId ? { ...line, qty } : line,
-      );
+      return current.map((line) => (line.productId === productId ? { ...line, qty } : line));
     });
   }
+
+  const onScan = useCallback(
+    (value: string) => {
+      const product = findProductByScan(products, value);
+      if (!product) {
+        toast.error("No product for that code.");
+        return;
+      }
+      if (product.stock <= 0) {
+        toast.error(`${product.name} is out of stock.`);
+        return;
+      }
+      add(product.id);
+      toast.success(`${product.name} added`);
+    },
+    [products],
+  );
 
   function setQty(productId: string, qty: number) {
     setTicket((current) =>
       qty <= 0
         ? current.filter((line) => line.productId !== productId)
-        : current.map((line) =>
-            line.productId === productId ? { ...line, qty } : line,
-          ),
+        : current.map((line) => (line.productId === productId ? { ...line, qty } : line)),
     );
   }
 
@@ -96,11 +109,25 @@ export function TillSale({ onSold }: { onSold?: () => void }) {
   return (
     <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
       <div>
-        <Input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search product or SKU"
-        />
+        <div className="flex gap-2">
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search product or SKU"
+          />
+          <Button type="button" variant={camera ? "default" : "outline"} onClick={() => setCamera((v) => !v)}>
+            {camera ? "Hide scan" : "Scan"}
+          </Button>
+        </div>
+        {camera ? (
+          <div className="mt-3">
+            <QrScanner
+              onRead={onScan}
+              continuous
+              hint="Scan the barcode or SKU of what they bought."
+            />
+          </div>
+        ) : null}
         <ul className="mt-4 grid grid-cols-2 gap-2">
           {matches.map((product) => (
             <li key={product.id}>
@@ -121,16 +148,14 @@ export function TillSale({ onSold }: { onSold?: () => void }) {
       <aside className="h-fit rounded-xl bg-secondary/40 p-5">
         <h2 className="font-display text-xl">This sale</h2>
         {lines.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">Tap a product to add it.</p>
+          <p className="mt-4 text-sm text-muted-foreground">Scan or tap a product to add it.</p>
         ) : (
           <ul className="mt-4 space-y-3">
             {lines.map((line) => (
               <li key={line.product.id} className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{line.product.name}</p>
-                  <p className="text-xs text-muted-foreground tabular-nums">
-                    {money(line.lineCents)}
-                  </p>
+                  <p className="text-xs text-muted-foreground tabular-nums">{money(line.lineCents)}</p>
                 </div>
                 <QtyStepper
                   value={line.qty}
