@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { StorefrontShell } from "@/components/shell";
+import { ProductThumb } from "@/components/product-still";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -127,9 +128,12 @@ function CheckoutPage() {
           <h2 className="font-display text-xl">To collect</h2>
           <ul className="mt-4 space-y-3">
             {lines.map((line) => (
-              <li key={line.product.id} className="flex justify-between gap-3 text-sm">
-                <span>
-                  {line.qty} × {line.product.name}
+              <li key={line.product.id} className="flex items-center justify-between gap-3 text-sm">
+                <span className="flex min-w-0 items-center gap-2.5">
+                  <ProductThumb product={line.product} className="size-10 rounded-md" />
+                  <span className="truncate">
+                    {line.qty} × {line.product.name}
+                  </span>
                 </span>
                 <span className="tabular-nums">{money(line.lineCents)}</span>
               </li>

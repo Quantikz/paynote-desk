@@ -16,7 +16,7 @@ export function ProductCard({ product }: { product: Product }) {
   const low = !out && product.stock <= product.reorderAt;
 
   return (
-    <article className="group flex flex-col rounded-xl bg-card p-2 shadow-[var(--shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--shadow-border-hover)]">
+    <article className="group flex flex-col rounded-xl bg-card p-2 shadow-[var(--shadow-border)] transition-[box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:shadow-[var(--shadow-border-hover)]">
       <div className="relative">
         <Link to="/product/$id" params={{ id: product.id }} className="block" tabIndex={-1} aria-hidden="true">
           <ProductStill product={product} className="aspect-[4/3] min-h-0 h-auto rounded-lg" />
@@ -27,7 +27,7 @@ export function ProductCard({ product }: { product: Product }) {
           className="absolute top-2 right-2 grid size-11 place-items-center rounded-md bg-card/80 text-foreground backdrop-blur-sm"
           aria-label={saved ? "Remove from saved" : "Save for later"}
         >
-          <Heart className={cn("size-4", saved && "fill-primary text-primary")} />
+          <Heart className={cn("size-4", saved && "fill-primary text-primary")} strokeWidth={1.75} />
         </button>
         <div className="absolute top-2 left-2 flex flex-wrap gap-1">
           {isDeal(product) || product.dealLabel ? (

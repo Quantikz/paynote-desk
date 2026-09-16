@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { format } from "date-fns";
+import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { ProductThumb } from "@/components/product-still";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,7 +49,15 @@ function InventoryPage() {
           Add stock here. The shop shows the new quantity at once.
         </p>
       </div>
-      <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a product" />
+      <div className="relative">
+        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Find a product"
+          className="pl-10"
+        />
+      </div>
       <div className="space-y-2">
         {rows.map((product) => {
           const low = product.stock <= product.reorderAt;
@@ -56,11 +66,14 @@ function InventoryPage() {
               key={product.id}
               className="flex flex-col gap-3 rounded-xl bg-card p-4 shadow-[var(--shadow-border)] sm:flex-row sm:items-center"
             >
-              <div className="min-w-0 flex-1">
-                <p className="font-medium">{product.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {product.sku} · reorder {product.reorderAt}
-                </p>
+              <div className="flex min-w-0 flex-1 items-center gap-3">
+                <ProductThumb product={product} className="size-12 rounded-md" />
+                <div className="min-w-0">
+                  <p className="font-medium">{product.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {product.sku} · reorder {product.reorderAt}
+                  </p>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 {low ? <Badge variant={product.stock === 0 ? "danger" : "warn"}>Low</Badge> : null}

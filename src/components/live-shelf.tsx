@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { HardDrive, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { pullShelf, pushShelf } from "@/components/hydrate";
@@ -27,10 +28,12 @@ export function LiveShelfChip() {
 
   return (
     <div className="flex items-center gap-2">
-      <span className="hidden text-[11px] tracking-[0.14em] text-muted-foreground uppercase sm:inline">
-        {online ? `Shop list ${version || "local"}` : "Offline · local book"}
+      <span className="hidden items-center gap-1.5 text-[11px] tracking-[0.14em] text-muted-foreground uppercase sm:inline-flex">
+        <HardDrive className="size-3" />
+        {online ? `Shop list ${version || "local"}` : "Saved on this phone"}
       </span>
       <Button type="button" size="sm" variant="outline" disabled={busy || !online} onClick={() => void publish()}>
+        <Upload className="size-3.5" />
         {busy ? "Publishing…" : online ? "Publish" : "Offline"}
       </Button>
     </div>

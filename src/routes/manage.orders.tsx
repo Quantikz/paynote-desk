@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
+import { Plus, ScanLine } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ReceiptView } from "@/components/receipt-view";
 import { TillSale } from "@/components/till-sale";
@@ -73,9 +74,15 @@ function ManageOrdersPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
-            <Link to="/manage/scan">Scan ticket</Link>
+            <Link to="/manage/scan">
+              <ScanLine className="size-4" />
+              Scan ticket
+            </Link>
           </Button>
-          <Button onClick={() => setSelling(true)}>New store sale</Button>
+          <Button onClick={() => setSelling(true)}>
+            <Plus className="size-4" />
+            New store sale
+          </Button>
         </div>
       </div>
       <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4">

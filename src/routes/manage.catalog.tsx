@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { ImagePlus, Plus, Search, Trash2 } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { ProductThumb } from "@/components/product-still";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +23,7 @@ import {
   type Product,
 } from "@/lib/catalog";
 import { money, nid, ngn, slugify } from "@/lib/money";
+import { compressProductImage } from "@/lib/product-image";
 import { useMarket } from "@/lib/store";
 
 export const Route = createFileRoute("/manage/catalog")({
@@ -48,6 +51,8 @@ function CatalogPage() {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Product>(emptyForm);
+  const [busyPhoto, setBusyPhoto] = useState(false);
+  const photoRef = useRef<HTMLInputElement>(null);
 
   const rows = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -69,9 +74,22 @@ function CatalogPage() {
       name: form.name.trim(),
       priceCents: Math.max(1, Math.round(form.priceCents)),
     });
-    toast.success("Product saved. Publishing to the shop.");
+    toast.success("Product saved on this phone.");
     void import("@/components/hydrate").then(({ pushShelf }) => pushShelf());
     setOpen(false);
+  }
+
+  async function onPhoto(file?: File | null) {
+    if (!file) return;
+    setBusyPhoto(true);
+    try {
+      const image = await compressProductImage(file);
+      setForm((current) => ({ ...current, image }));
+    } catch {
+      toast.error("Could not use that photo. Try a JPG or PNG.");
+    } finally {
+      setBusyPhoto(false);
+    }
   }
 
   return (
@@ -80,8 +98,8 @@ function CatalogPage() {
         <div>
           <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">Catalog</p>
           <h1 className="font-display text-4xl">Products</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Add or edit items. If stock is 0 or you turn “Show in shop” off, customers will not see it.
+          <p className="mt-2 max-w-xl text-sm text-muted-foreground">
+            Add a photo with each item. The catalog stays on this phone, so the desk still works without internet.
           </p>
         </div>
         <Button
@@ -90,10 +108,19 @@ function CatalogPage() {
             setOpen(true);
           }}
         >
+          <Plus className="size-4" />
           New product
         </Button>
       </div>
-      <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search SKU or name" />
+      <div className="relative">
+        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search SKU or name"
+          className="pl-10"
+        />
+      </div>
       <div className="overflow-hidden rounded-xl bg-card shadow-[var(--shadow-border)]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[40rem] text-left text-sm">
@@ -117,8 +144,13 @@ function CatalogPage() {
                   }}
                 >
                   <td className="px-4 py-3">
-                    <p className="font-medium">{product.name}</p>
-                    <p className="text-xs text-muted-foreground">{product.sku}</p>
+                    <div className="flex items-center gap-3">
+                      <ProductThumb product={product} className="size-11 rounded-md" />
+                      <div>
+                        <p className="font-medium">{product.name}</p>
+                        <p className="text-xs text-muted-foreground">{product.sku}</p>
+                      </div>
+                    </div>
                   </td>
                   <td className="px-4 py-3 capitalize">{product.category}</td>
                   <td className="px-4 py-3 tabular-nums">{money(product.priceCents)}</td>
@@ -142,10 +174,53 @@ function CatalogPage() {
           <DialogHeader>
             <DialogTitle>{form.id ? "Edit product" : "Add product"}</DialogTitle>
             <DialogDescription>
-              Price is in naira. Customers only see products that are on and have stock.
+              Price is in naira. Photos are kept on this phone with the rest of the shop.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-3">
+            <div>
+              <Label>Photo</Label>
+              <div className="mt-1.5 flex items-center gap-3">
+                {form.image ? (
+                  <img src={form.image} alt="" className="size-20 rounded-lg object-cover" />
+                ) : (
+                  <div className="grid size-20 place-items-center rounded-lg bg-muted text-muted-foreground">
+                    <ImagePlus className="size-5" />
+                  </div>
+                )}
+                <div className="flex flex-1 flex-col gap-2">
+                  <input
+                    ref={photoRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(event) => {
+                      void onPhoto(event.target.files?.[0]);
+                      event.target.value = "";
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => photoRef.current?.click()}
+                    disabled={busyPhoto}
+                  >
+                    <ImagePlus className="size-4" />
+                    {busyPhoto ? "Reading…" : form.image ? "Change photo" : "Add photo"}
+                  </Button>
+                  {form.image ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setForm({ ...form, image: undefined })}
+                    >
+                      <Trash2 className="size-4" />
+                      Remove
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+            </div>
             <Field
               label="Name"
               value={form.name}

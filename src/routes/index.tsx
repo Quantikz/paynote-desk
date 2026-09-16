@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Search, Tag } from "lucide-react";
 import { ProductCard } from "@/components/product-card";
 import { StorefrontShell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
@@ -41,25 +41,26 @@ function Home() {
   return (
     <StorefrontShell>
       <section className="border-b border-border bg-card">
-        <div className="mx-auto max-w-6xl px-4 py-10 sm:py-12">
-          <p className="text-[11px] font-medium tracking-[0.22em] text-muted-foreground uppercase">
+        <div className="mx-auto max-w-6xl px-4 py-10 sm:py-14">
+          <p className="text-xs font-medium tracking-[0.22em] text-muted-foreground uppercase">
             {shop.city}
           </p>
           <h1 className="font-display mt-3 max-w-xl text-4xl leading-[1.08] tracking-tight sm:text-5xl">
             {shop.tagline}
           </h1>
           <p className="mt-4 max-w-lg text-muted-foreground">{shop.welcome}</p>
-          <div className="mt-6 flex flex-wrap gap-2">
+          <div className="mt-7 flex flex-wrap gap-2">
             <Button asChild>
               <a href="#aisles">See products</a>
             </Button>
             <Button asChild variant="outline">
               <Link to="/" search={{ deals: true }}>
+                <Tag className="size-4" />
                 Today’s promos
               </Link>
             </Button>
           </div>
-          <p className="mt-5 text-sm text-muted-foreground">
+          <p className="mt-6 text-sm text-muted-foreground">
             {shop.street} · {shop.hours} · {shop.phone}
           </p>
         </div>
@@ -85,12 +86,16 @@ function Home() {
               {filtered.length} item{filtered.length === 1 ? "" : "s"} in stock
             </p>
           </div>
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search tomatoes, rice, eggs…"
-            className="sm:max-w-xs"
-          />
+          <div className="relative sm:max-w-xs sm:flex-1">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search tomatoes, rice, eggs…"
+              className="pl-10"
+              aria-label="Search products"
+            />
+          </div>
         </div>
         <div className="no-scrollbar -mx-4 mb-6 flex gap-2 overflow-x-auto px-4">
           <Chip to="/" active={!search.aisle && !search.deals} label="All" />

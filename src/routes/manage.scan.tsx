@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { FileJson, ScanLine, Search } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { holdStock } from "@/components/hydrate";
+import { ProductThumb } from "@/components/product-still";
 import { QrScanner, readCodeFromFile } from "@/components/qr-scanner";
 import { QtyStepper } from "@/components/qty-stepper";
 import { Badge } from "@/components/ui/badge";
@@ -192,7 +194,7 @@ function ScanPage() {
           <p className="text-xs font-medium tracking-[0.2em] text-muted-foreground uppercase">
             {online ? "Counter" : "Offline · on this phone"}
           </p>
-          <h1 className="text-3xl font-semibold tracking-tight">Scan what they brought</h1>
+          <h1 className="font-display text-4xl tracking-tight">Scan what they brought</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Scan with the camera, or upload a photo of the QR. Each product becomes the order.
             A customer ticket still records their collection. This phone keeps the book even without internet.
@@ -205,19 +207,23 @@ function ScanPage() {
           continuous={!order}
           hint="Scan a product or ticket, or upload a photo of the QR."
         />
-        <div className="flex gap-2">
-          <Input
-            ref={pasteRef}
-            value={typed}
-            onChange={(e) => setTyped(e.target.value)}
-            placeholder="Type SKU or paste ticket"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") lookup();
-            }}
-          />
-          <Button variant="outline" onClick={lookup}>
-            Add
-          </Button>
+        <div className="relative">
+          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <div className="flex gap-2">
+            <Input
+              ref={pasteRef}
+              value={typed}
+              onChange={(e) => setTyped(e.target.value)}
+              placeholder="Type SKU or paste ticket"
+              className="pl-10"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") lookup();
+              }}
+            />
+            <Button variant="outline" onClick={lookup}>
+              Add
+            </Button>
+          </div>
         </div>
         <div>
           <input
@@ -231,17 +237,18 @@ function ScanPage() {
             }}
           />
           <Button variant="outline" className="w-full" onClick={() => fileRef.current?.click()}>
+            <FileJson className="size-4" />
             Load ticket JSON
           </Button>
         </div>
       </div>
 
-      <aside className="h-fit border border-border bg-card p-5">
+      <aside className="h-fit rounded-xl bg-card p-5 shadow-[var(--shadow-border)]">
         {order ? (
           <div className="space-y-4">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
-                <p className="text-2xl font-semibold">{order.number}</p>
+                <p className="font-display text-2xl">{order.number}</p>
                 <p className="text-sm text-muted-foreground">
                   {order.customer.name} · {order.customer.phone}
                 </p>
@@ -306,7 +313,7 @@ function ScanPage() {
                       type="button"
                       onClick={() => setPay(id)}
                       className={cn(
-                        "h-11 text-sm capitalize",
+                        "h-11 rounded-md text-sm capitalize",
                         pay === id ? "bg-primary text-primary-foreground" : "bg-secondary",
                       )}
                     >
@@ -315,6 +322,7 @@ function ScanPage() {
                   ))}
                 </div>
                 <Button className="w-full" size="lg" onClick={collect}>
+                  <ScanLine className="size-4" />
                   Record {money(order.totalCents)}
                 </Button>
               </>
@@ -340,11 +348,14 @@ function ScanPage() {
               <ul className="space-y-3">
                 {lines.map((line) => (
                   <li key={line.product.id} className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{line.product.name}</p>
-                      <p className="text-xs text-muted-foreground tabular-nums">
-                        {line.product.sku} · {money(line.lineCents)}
-                      </p>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <ProductThumb product={line.product} className="size-11 rounded-md" />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{line.product.name}</p>
+                        <p className="text-xs text-muted-foreground tabular-nums">
+                          {line.product.sku} · {money(line.lineCents)}
+                        </p>
+                      </div>
                     </div>
                     <QtyStepper
                       value={line.qty}
@@ -371,7 +382,7 @@ function ScanPage() {
                   type="button"
                   onClick={() => setTender(id)}
                   className={cn(
-                    "h-11 text-sm capitalize",
+                    "h-11 rounded-md text-sm capitalize",
                     tender === id ? "bg-primary text-primary-foreground" : "bg-secondary",
                   )}
                 >

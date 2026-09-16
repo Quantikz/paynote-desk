@@ -15,6 +15,7 @@ import {
 } from "@/lib/catalog";
 import { DEFAULT_SHOP, normalizeShop, type ShopProfile } from "@/lib/shop";
 import { nid, slugify, TAX_RATE, ngn } from "@/lib/money";
+import { localPersistStorage } from "@/lib/local-db";
 
 export type CheckoutInput = {
   fulfillment: Fulfillment;
@@ -286,6 +287,9 @@ export const useMarket = create<MarketState>()(
           const id = product.id || slugify(product.name) || nid("p");
           const next = { ...product, id };
           const exists = state.products.some((item) => item.id === id);
+          void import("@/lib/local-db").then(({ saveProductImage }) =>
+            saveProductImage(id, next.image),
+          );
           return {
             products: exists
               ? state.products.map((item) => (item.id === id ? next : item))
@@ -356,8 +360,15 @@ export const useMarket = create<MarketState>()(
       },
       applyShelf: (products, promos, version, shop) => {
         if (!products.length || version <= get().shelfVersion) return;
+        const previous = get().products;
         set({
-          products,
+          products: products.map((product) => {
+            const local = previous.find((item) => item.id === product.id);
+            return {
+              ...product,
+              image: product.image || local?.image,
+            };
+          }),
           promos,
           shelfVersion: version,
           ...(shop ? { shop: normalizeShop(shop) } : {}),
@@ -390,6 +401,7 @@ export const useMarket = create<MarketState>()(
     }),
     {
       name: "paynote-ng-v1",
+      storage: localPersistStorage,
       skipHydration: true,
       merge: (persisted, current) => {
         const saved = (persisted ?? {}) as Partial<MarketState>;

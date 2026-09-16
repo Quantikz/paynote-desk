@@ -3,6 +3,7 @@ import { loadShelf, publishShelf, reserveShelf, type ShelfPayload } from "@/lib/
 import { fetchRemoteShelf, publishRemoteShelf, reserveRemoteShelf, shelfOrigin } from "@/lib/shelf-client";
 import { isOnline } from "@/lib/offline";
 import { isLocalStaffToken, staffToken } from "@/lib/staff-session";
+import { loadProductImages } from "@/lib/local-db";
 import { useMarket } from "@/lib/store";
 import { surface } from "@/lib/surface";
 
@@ -11,6 +12,7 @@ const STORAGE_KEY = "paynote-ng-v1";
 function applyLive(shelf: ShelfPayload | { products: ShelfPayload["products"]; promos: ShelfPayload["promos"]; version: number; shop?: ShelfPayload["shop"] } | null) {
   if (!shelf?.products?.length) return;
   useMarket.getState().applyShelf(shelf.products, shelf.promos, shelf.version, shelf.shop);
+  void restoreLocalImages();
 }
 
 export async function pullShelf() {
@@ -77,9 +79,23 @@ export async function holdStock(items: Array<{ productId: string; qty: number }>
   }
 }
 
+export async function restoreLocalImages() {
+  const images = await loadProductImages();
+  if (!Object.keys(images).length) return;
+  const { products } = useMarket.getState();
+  let changed = false;
+  const next = products.map((product) => {
+    if (product.image || !images[product.id]) return product;
+    changed = true;
+    return { ...product, image: images[product.id] };
+  });
+  if (changed) useMarket.setState({ products: next });
+}
+
 export function HydrateGate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    void Promise.resolve(useMarket.persist.rehydrate()).then(() => {
+    void Promise.resolve(useMarket.persist.rehydrate()).then(async () => {
+      await restoreLocalImages();
       useMarket.getState().pruneCart();
       useMarket.getState().setHydrated(true);
       void pullShelf();

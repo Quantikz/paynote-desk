@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { ProductThumb } from "@/components/product-still";
 import { categoryLabel } from "@/lib/catalog";
 import { useLiveProducts } from "@/lib/market-hooks";
 import { money } from "@/lib/money";
@@ -74,15 +75,18 @@ export function SearchDialog({
               <li key={product.id} className="flex items-center gap-1 rounded-lg hover:bg-muted">
                 <button
                   type="button"
-                  className="min-w-0 flex-1 px-3 py-2.5 text-left"
+                  className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left"
                   onClick={() => {
                     onOpenChange(false);
                     void navigate({ to: "/product/$id", params: { id: product.id } });
                   }}
                 >
-                  <span className="block text-sm font-medium">{product.name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {categoryLabel(product.category)} · {money(product.priceCents)}
+                  <ProductThumb product={product} className="size-10 rounded-md" />
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium">{product.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {categoryLabel(product.category)} · {money(product.priceCents)}
+                    </span>
                   </span>
                 </button>
                 <button

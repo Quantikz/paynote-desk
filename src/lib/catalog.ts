@@ -46,6 +46,7 @@ export type Product = {
   plate: PlateId;
   origin?: string;
   dealLabel?: string;
+  image?: string;
 };
 
 export type CartLine = { productId: string; qty: number };

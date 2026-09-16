@@ -58,15 +58,15 @@ export function StaffGate({ onUnlock }: { onUnlock: () => void }) {
     <div className="admin-root flex min-h-dvh items-center justify-center bg-background px-4">
       <form
         onSubmit={(event) => void submit(event)}
-        className="w-full max-w-sm border border-border bg-card p-8 text-card-foreground"
+        className="w-full max-w-sm rounded-2xl bg-card p-8 text-card-foreground shadow-[var(--shadow-border)]"
       >
-        <div className="grid size-10 place-items-center bg-primary text-primary-foreground">
-          <Lock className="size-4" />
+        <div className="grid size-11 place-items-center rounded-lg bg-primary text-primary-foreground">
+          <Lock className="size-4" strokeWidth={1.75} />
         </div>
         <p className="mt-5 text-[11px] font-medium tracking-[0.22em] text-muted-foreground uppercase">
           Restricted desk
         </p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">{shop.name} desk</h1>
+        <h1 className="mt-2 font-display text-3xl tracking-tight">{shop.name} desk</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Staff only. After the first unlock, this phone can open the desk without internet. Session ends after 30 minutes.
         </p>

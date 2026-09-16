@@ -2,8 +2,9 @@ import { useState } from "react";
 import { plateClasses, type Product } from "@/lib/catalog";
 import { cn } from "@/lib/utils";
 
-export function productImageSrc(id: string) {
-  return `/products/${id}.jpg`;
+export function productImageSrc(product: Product) {
+  if (product.image) return product.image;
+  return `/products/${product.id}.jpg`;
 }
 
 export function ProductStill({
@@ -14,22 +15,29 @@ export function ProductStill({
   className?: string;
 }) {
   const [failed, setFailed] = useState(false);
+  const src = productImageSrc(product);
+  const showPhoto = Boolean(product.image) || !failed;
 
   return (
     <div
       aria-hidden="true"
       className={cn(
         "relative flex min-h-40 overflow-hidden rounded-lg",
-        failed
-          ? `product-still flex-col justify-between p-4 ${plateClasses(product.plate)}`
-          : "bg-muted",
+        showPhoto ? "bg-muted" : `product-still flex-col justify-between p-4 ${plateClasses(product.plate)}`,
         className,
       )}
     >
-      {failed ? (
+      {showPhoto ? (
+        <img
+          src={src}
+          alt=""
+          className="absolute inset-0 size-full object-cover"
+          onError={() => setFailed(true)}
+        />
+      ) : (
         <>
           <div className="relative z-10 flex items-start justify-between gap-2">
-            <span className="text-[11px] font-medium tracking-[0.16em] uppercase opacity-70">
+            <span className="text-xs font-medium tracking-[0.16em] uppercase opacity-70">
               {product.unit}
             </span>
             <span className="font-display text-4xl leading-none opacity-25">
@@ -40,13 +48,6 @@ export function ProductStill({
             <p className="font-display text-xl leading-tight text-balance">{product.name}</p>
           </div>
         </>
-      ) : (
-        <img
-          src={productImageSrc(product.id)}
-          alt=""
-          className="absolute inset-0 size-full object-cover"
-          onError={() => setFailed(true)}
-        />
       )}
     </div>
   );
@@ -60,22 +61,24 @@ export function ProductThumb({
   className?: string;
 }) {
   const [failed, setFailed] = useState(false);
+  const src = productImageSrc(product);
+  const showPhoto = Boolean(product.image) || !failed;
   return (
     <div
       className={cn(
-        "h-14 w-14 shrink-0 overflow-hidden rounded-md",
-        failed && plateClasses(product.plate),
+        "relative size-11 shrink-0 overflow-hidden rounded-md bg-muted",
+        !showPhoto && plateClasses(product.plate),
         className,
       )}
     >
-      {failed ? null : (
+      {showPhoto ? (
         <img
-          src={productImageSrc(product.id)}
+          src={src}
           alt=""
-          className="h-full w-full object-cover"
+          className="absolute inset-0 size-full object-cover"
           onError={() => setFailed(true)}
         />
-      )}
+      ) : null}
     </div>
   );
 }

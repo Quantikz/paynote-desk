@@ -2,32 +2,32 @@
 @import "tw-animate-css";
 
 @theme {
-  --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Newsreader", ui-serif, Georgia, "Times New Roman", serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 
-  --color-background: #f4efe6;
-  --color-foreground: #1a1916;
-  --color-card: #fbf8f2;
-  --color-card-foreground: #1a1916;
-  --color-popover: #fbf8f2;
-  --color-popover-foreground: #1a1916;
-  --color-primary: #3f5c4a;
-  --color-primary-foreground: #f7f3ea;
-  --color-secondary: #ebe4d6;
-  --color-secondary-foreground: #1a1916;
-  --color-muted: #ebe4d6;
-  --color-muted-foreground: #6f6a60;
-  --color-accent: #dfe8e1;
-  --color-accent-foreground: #2c4234;
+  --color-background: #f3efe6;
+  --color-foreground: #171614;
+  --color-card: #fbf8f1;
+  --color-card-foreground: #171614;
+  --color-popover: #fbf8f1;
+  --color-popover-foreground: #171614;
+  --color-primary: #2f5a42;
+  --color-primary-foreground: #f7f4ec;
+  --color-secondary: #ebe5d8;
+  --color-secondary-foreground: #171614;
+  --color-muted: #ebe5d8;
+  --color-muted-foreground: #6a655c;
+  --color-accent: #dde6df;
+  --color-accent-foreground: #24382c;
   --color-destructive: #9b3d32;
-  --color-destructive-foreground: #fbf8f2;
-  --color-border: #ddd4c4;
-  --color-input: #d4cbb8;
-  --color-ring: #3f5c4a;
-  --color-sage: #3f5c4a;
-  --color-ink: #1a1916;
-  --color-paper: #f4efe6;
+  --color-destructive-foreground: #fbf8f1;
+  --color-border: color-mix(in oklab, #171614 12%, transparent);
+  --color-input: color-mix(in oklab, #171614 16%, transparent);
+  --color-ring: #2f5a42;
+  --color-sage: #2f5a42;
+  --color-ink: #171614;
+  --color-paper: #f3efe6;
 
   --color-plate-leaf: #4a6b4e;
   --color-plate-leaf-fg: #f4efe6;
@@ -54,20 +54,18 @@
   --color-plate-frost: #8aa0a8;
   --color-plate-frost-fg: #1a2224;
 
-  --radius: 0.75rem;
+  --radius: 0.875rem;
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
-  --radius-lg: 1rem;
+  --radius-lg: 1.125rem;
   --radius-xl: 1.5rem;
 
   --shadow-border:
-    0px 0px 0px 1px rgba(26, 25, 22, 0.06),
-    0px 1px 2px -1px rgba(26, 25, 22, 0.06),
-    0px 2px 4px 0px rgba(26, 25, 22, 0.04);
+    0px 0px 0px 1px color-mix(in oklab, #171614 8%, transparent),
+    0px 1px 2px -1px color-mix(in oklab, #171614 6%, transparent);
   --shadow-border-hover:
-    0px 0px 0px 1px rgba(26, 25, 22, 0.08),
-    0px 1px 2px -1px rgba(26, 25, 22, 0.08),
-    0px 2px 8px 0px rgba(26, 25, 22, 0.06);
+    0px 0px 0px 1px color-mix(in oklab, #171614 12%, transparent),
+    0px 8px 20px -12px color-mix(in oklab, #171614 18%, transparent);
 }
 
 @layer base {
@@ -97,6 +95,8 @@
   h1,
   h2,
   h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.03em;
     text-wrap: balance;
   }
 
@@ -107,11 +107,6 @@
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
-  }
-
-  img {
-    outline: 1px solid rgba(26, 25, 22, 0.1);
-    outline-offset: -1px;
   }
 }
 
@@ -132,17 +127,17 @@
   --color-accent-foreground: #0a0a0a;
   --color-destructive: #b42318;
   --color-destructive-foreground: #ffffff;
-  --color-border: #d6d6d6;
-  --color-input: #d6d6d6;
+  --color-border: color-mix(in oklab, #0a0a0a 12%, transparent);
+  --color-input: color-mix(in oklab, #0a0a0a 16%, transparent);
   --color-ring: #0b7a3b;
   --color-sage: #0b7a3b;
   --color-ink: #0a0a0a;
   --color-paper: #ffffff;
-  --radius: 0.25rem;
-  --radius-sm: 0.125rem;
-  --radius-md: 0.25rem;
-  --radius-lg: 0.375rem;
-  --radius-xl: 0.5rem;
+  --radius: 0.75rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.125rem;
   --font-display: var(--font-sans);
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
   background: var(--color-background);
@@ -150,7 +145,7 @@
 }
 
 .admin-root img {
-  outline-color: rgba(10, 10, 10, 0.12);
+  outline: none;
 }
 
 @utility font-display {

@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { useMemo } from "react";
 import { StorefrontShell } from "@/components/shell";
+import { ProductThumb } from "@/components/product-still";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { STATUS_LABEL } from "@/lib/catalog";
@@ -36,11 +37,14 @@ function OrdersPage() {
             <ul className="mt-3 divide-y divide-border rounded-xl bg-card shadow-[var(--shadow-border)]">
               {saved.map((product) => (
                 <li key={product.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                  <Link to="/product/$id" params={{ id: product.id }} className="min-w-0">
-                    <p className="truncate font-medium">{product.name}</p>
-                    <p className="text-sm text-muted-foreground tabular-nums">
-                      {money(product.priceCents)}
-                    </p>
+                  <Link to="/product/$id" params={{ id: product.id }} className="flex min-w-0 items-center gap-3">
+                    <ProductThumb product={product} className="size-11 rounded-md" />
+                    <span className="min-w-0">
+                      <p className="truncate font-medium">{product.name}</p>
+                      <p className="text-sm text-muted-foreground tabular-nums">
+                        {money(product.priceCents)}
+                      </p>
+                    </span>
                   </Link>
                   <Button size="sm" onClick={() => addToCart(product.id, 1)}>
                     Add

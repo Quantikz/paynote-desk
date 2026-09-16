@@ -1,6 +1,8 @@
+import { ScanLine, Search } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { holdStock } from "@/components/hydrate";
+import { ProductThumb } from "@/components/product-still";
 import { QrScanner } from "@/components/qr-scanner";
 import { QtyStepper } from "@/components/qty-stepper";
 import { Button } from "@/components/ui/button";
@@ -110,12 +112,17 @@ export function TillSale({ onSold }: { onSold?: () => void }) {
     <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
       <div>
         <div className="flex gap-2">
-          <Input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search product or SKU"
-          />
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search product or SKU"
+              className="pl-10"
+            />
+          </div>
           <Button type="button" variant={camera ? "default" : "outline"} onClick={() => setCamera((v) => !v)}>
+            <ScanLine className="size-4" />
             {camera ? "Hide scan" : "Scan"}
           </Button>
         </div>
@@ -134,12 +141,15 @@ export function TillSale({ onSold }: { onSold?: () => void }) {
               <button
                 type="button"
                 onClick={() => add(product.id)}
-                className="w-full rounded-xl bg-card p-3 text-left shadow-[var(--shadow-border)]"
+                className="flex w-full items-center gap-3 rounded-xl bg-card p-3 text-left shadow-[var(--shadow-border)]"
               >
-                <p className="truncate font-medium">{product.name}</p>
-                <p className="text-sm text-muted-foreground tabular-nums">
-                  {money(product.priceCents)} · {product.stock} left
-                </p>
+                <ProductThumb product={product} className="size-11 rounded-md" />
+                <span className="min-w-0">
+                  <p className="truncate font-medium">{product.name}</p>
+                  <p className="text-sm text-muted-foreground tabular-nums">
+                    {money(product.priceCents)} · {product.stock} left
+                  </p>
+                </span>
               </button>
             </li>
           ))}

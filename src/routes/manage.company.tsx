@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Copy, MonitorSmartphone, Store } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -89,8 +90,8 @@ function CompanyPage() {
             Customers only see the shop. Staff open the desk on a phone behind the counter.
           </p>
         </div>
-        <SiteRow label="Shop" href={shopLink} onCopy={() => void copy(shopLink, "Shop link")} />
-        <SiteRow label="Staff desk" href={deskLink} onCopy={() => void copy(deskLink, "Desk link")} />
+        <SiteRow label="Shop" href={shopLink} icon={Store} onCopy={() => void copy(shopLink, "Shop link")} />
+        <SiteRow label="Staff desk" href={deskLink} icon={MonitorSmartphone} onCopy={() => void copy(deskLink, "Desk link")} />
       </section>
 
       <form
@@ -169,16 +170,32 @@ function CompanyPage() {
   );
 }
 
-function SiteRow({ label, href, onCopy }: { label: string; href: string; onCopy: () => void }) {
+function SiteRow({
+  label,
+  href,
+  icon: Icon,
+  onCopy,
+}: {
+  label: string;
+  href: string;
+  icon: typeof Store;
+  onCopy: () => void;
+}) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-secondary px-4 py-3">
-      <div className="min-w-0">
-        <p className="text-xs tracking-[0.14em] text-muted-foreground uppercase">{label}</p>
-        <a href={href} className="break-all text-sm underline-offset-2 hover:underline" target="_blank" rel="noreferrer">
-          {href}
-        </a>
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="grid size-9 shrink-0 place-items-center rounded-md bg-card text-foreground">
+          <Icon className="size-4" strokeWidth={1.75} />
+        </span>
+        <div className="min-w-0">
+          <p className="text-xs tracking-[0.14em] text-muted-foreground uppercase">{label}</p>
+          <a href={href} className="break-all text-sm underline-offset-2 hover:underline" target="_blank" rel="noreferrer">
+            {href}
+          </a>
+        </div>
       </div>
       <Button type="button" size="sm" variant="outline" onClick={onCopy}>
+        <Copy className="size-4" />
         Copy
       </Button>
     </div>

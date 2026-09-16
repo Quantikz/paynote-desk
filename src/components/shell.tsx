@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
+  Building2,
   ClipboardList,
   LayoutDashboard,
   Lock,
   Package,
+  Percent,
   QrCode,
+  ScanLine,
   Search,
   ShoppingBag,
   Store,
+  Warehouse,
 } from "lucide-react";
 import { CartDrawer } from "@/components/cart-drawer";
 import { LiveShelfChip } from "@/components/live-shelf";
@@ -23,12 +27,12 @@ import { shopUrl, surface } from "@/lib/surface";
 import { cn } from "@/lib/utils";
 
 const MANAGE = [
-  { to: "/manage/scan", label: "Scan" },
-  { to: "/manage", label: "Sales" },
-  { to: "/manage/catalog", label: "Products" },
-  { to: "/manage/inventory", label: "Stock" },
-  { to: "/manage/orders", label: "Orders" },
-  { to: "/manage/company", label: "Company" },
+  { to: "/manage/scan", label: "Scan", icon: ScanLine },
+  { to: "/manage", label: "Sales", icon: LayoutDashboard },
+  { to: "/manage/catalog", label: "Products", icon: Package },
+  { to: "/manage/inventory", label: "Stock", icon: Warehouse },
+  { to: "/manage/orders", label: "Orders", icon: ClipboardList },
+  { to: "/manage/company", label: "Company", icon: Building2 },
 ] as const;
 
 export function StorefrontShell({ children }: { children: React.ReactNode }) {
@@ -61,14 +65,37 @@ export function StorefrontShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-border/80 bg-background/90 backdrop-blur-sm">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4">
           <Wordmark />
-          <nav className="ml-4 hidden items-center gap-5 text-sm text-muted-foreground md:flex">
-            <Link to="/" className="hover:text-foreground">
+          <nav className="ml-5 hidden items-center gap-1 text-sm md:flex">
+            <Link
+              to="/"
+              className={cn(
+                "inline-flex h-10 items-center gap-1.5 rounded-md px-3",
+                pathname === "/"
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
+            >
+              <Store className="size-4" strokeWidth={1.75} />
               Shop
             </Link>
-            <Link to="/" search={{ deals: true }} className="hover:text-foreground">
+            <Link
+              to="/"
+              search={{ deals: true }}
+              className="inline-flex h-10 items-center gap-1.5 rounded-md px-3 text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <Percent className="size-4" strokeWidth={1.75} />
               Promos
             </Link>
-            <Link to="/orders" className="hover:text-foreground">
+            <Link
+              to="/orders"
+              className={cn(
+                "inline-flex h-10 items-center gap-1.5 rounded-md px-3",
+                pathname.startsWith("/orders")
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
+            >
+              <ClipboardList className="size-4" strokeWidth={1.75} />
               My orders
             </Link>
           </nav>
@@ -96,7 +123,7 @@ export function StorefrontShell({ children }: { children: React.ReactNode }) {
               ) : null}
             </Button>
             {showDesk ? (
-              <Button asChild variant="outline" size="sm">
+              <Button asChild variant="outline" size="sm" className="hidden whitespace-nowrap sm:inline-flex">
                 <Link to="/admin">Staff desk</Link>
               </Button>
             ) : null}
@@ -195,12 +222,13 @@ export function ManageShell({ children }: { children: React.ReactNode }) {
                 key={item.to}
                 to={item.to}
                 className={cn(
-                  "rounded-md px-3 py-2 text-sm",
+                  "inline-flex h-10 items-center gap-1.5 rounded-md px-3 text-sm",
                   pathname === item.to
                     ? "bg-secondary text-foreground"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
+                <item.icon className="size-4" strokeWidth={1.75} />
                 {item.label}
               </Link>
             ))}
@@ -211,6 +239,7 @@ export function ManageShell({ children }: { children: React.ReactNode }) {
               {surface() === "admin" ? <a href={shopUrl()}>View shop</a> : <Link to="/">View shop</Link>}
             </Button>
             <Button variant="ghost" size="sm" onClick={lock}>
+              <Lock className="size-4" />
               Lock
             </Button>
           </div>
@@ -221,12 +250,13 @@ export function ManageShell({ children }: { children: React.ReactNode }) {
               key={item.to}
               to={item.to}
               className={cn(
-                "shrink-0 rounded-full px-3 py-2 text-sm",
+                "inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm",
                 pathname === item.to
                   ? "bg-primary text-primary-foreground"
                   : "bg-secondary text-secondary-foreground",
               )}
             >
+              <item.icon className="size-3.5" strokeWidth={1.75} />
               {item.label}
             </Link>
           ))}

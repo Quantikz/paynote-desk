@@ -48,7 +48,7 @@ export function CartDrawer() {
               <ul className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 pb-4">
                 {lines.map((line) => (
                   <li key={line.product.id} className="flex gap-3 rounded-lg bg-card p-2">
-                    <ProductThumb product={line.product} className="mt-1" />
+                    <ProductThumb product={line.product} className="mt-1 size-14" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{line.product.name}</p>
                       <p className="text-xs text-muted-foreground tabular-nums">

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { format, parseISO } from "date-fns";
+import { Building2, RotateCcw, ScanLine, Store } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
   Bar,
@@ -77,15 +78,22 @@ function ManageHome() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild>
-            <Link to="/manage/scan">Scan a ticket</Link>
+            <Link to="/manage/scan">
+              <ScanLine className="size-4" />
+              Scan a ticket
+            </Link>
           </Button>
           <Button asChild variant="outline">
             <Link to="/manage/orders" search={{ sale: true }}>
+              <Store className="size-4" />
               Store sale
             </Link>
           </Button>
           <Button asChild variant="outline">
-            <Link to="/manage/company">Company</Link>
+            <Link to="/manage/company">
+              <Building2 className="size-4" />
+              Company
+            </Link>
           </Button>
           <Button
             variant="outline"
@@ -94,6 +102,7 @@ function ManageHome() {
               void import("@/components/hydrate").then(({ pushShelf }) => pushShelf());
             }}
           >
+            <RotateCcw className="size-4" />
             Reset demo shop
           </Button>
         </div>
