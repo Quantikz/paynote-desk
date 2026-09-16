@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { holdStock } from "@/components/hydrate";
-import { QrScanner } from "@/components/qr-scanner";
+import { QrScanner, readCodeFromFile } from "@/components/qr-scanner";
 import { QtyStepper } from "@/components/qty-stepper";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -124,8 +124,12 @@ function ScanPage() {
 
   async function onFile(file?: File | null) {
     if (!file) return;
-    const text = await file.text();
-    if (!applyRaw(text)) toast.error("That file is not a Paynote ticket JSON.");
+    const value = await readCodeFromFile(file);
+    if (!value) {
+      toast.error("No QR in that photo, and it is not a ticket file.");
+      return;
+    }
+    if (!applyRaw(value)) toast.error("That photo or file has no order or product.");
   }
 
   function collect() {
@@ -190,8 +194,8 @@ function ScanPage() {
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">Scan what they brought</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Each product you scan becomes the order. A customer ticket still records their collection.
-            This phone keeps the book even without internet.
+            Scan with the camera, or upload a photo of the QR. Each product becomes the order.
+            A customer ticket still records their collection. This phone keeps the book even without internet.
           </p>
         </div>
         <QrScanner
@@ -199,7 +203,7 @@ function ScanPage() {
           paused={Boolean(order)}
           onReset={reset}
           continuous={!order}
-          hint="Scan a product barcode, SKU, or the customer’s ticket."
+          hint="Scan a product or ticket, or upload a photo of the QR."
         />
         <div className="flex gap-2">
           <Input

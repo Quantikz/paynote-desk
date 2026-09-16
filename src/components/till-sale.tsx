@@ -124,7 +124,7 @@ export function TillSale({ onSold }: { onSold?: () => void }) {
             <QrScanner
               onRead={onScan}
               continuous
-              hint="Scan the barcode or SKU of what they bought."
+              hint="Scan the barcode, or upload a photo of the QR."
             />
           </div>
         ) : null}
