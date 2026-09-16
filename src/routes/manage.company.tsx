@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Copy, HardDrive, MonitorSmartphone, Wifi } from "lucide-react";
+import { Copy, HardDrive, MonitorSmartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { WifiShare } from "@/components/wifi-share";
 import { pushShelf } from "@/components/hydrate";
 import { lanInfo, setStorePassword } from "@/lib/ledger";
 import { useShop } from "@/lib/market-hooks";
@@ -30,7 +31,6 @@ function CompanyPage() {
   const [pin, setPin] = useState("");
   const [door, setDoor] = useState("");
   const [busy, setBusy] = useState(false);
-  const [urls, setUrls] = useState<string[]>([]);
   const [dataPath, setDataPath] = useState("");
   const shopLink = shopUrl().startsWith("http") ? shopUrl() : PUBLIC_SHOP;
   const deskLink = adminUrl().startsWith("http") ? adminUrl() : PUBLIC_DESK;
@@ -38,7 +38,6 @@ function CompanyPage() {
 
   useEffect(() => {
     void lanInfo().then((info) => {
-      setUrls(info.urls);
       setDataPath(info.dataDir);
     });
   }, []);
@@ -108,6 +107,7 @@ function CompanyPage() {
         </p>
       </div>
 
+      {localComputer ? <WifiShare /> : (
       <section className="space-y-4 rounded-xl bg-card p-5 shadow-[var(--shadow-border)]">
         <div>
           <h2 className="inline-flex items-center gap-2 text-lg font-semibold">
@@ -115,38 +115,18 @@ function CompanyPage() {
             Live sites
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Install these on a Windows PC from Edge: the address bar install icon, then pin to the taskbar.
+            Customer shop and staff desk on the internet.
           </p>
         </div>
         <SiteRow label="Customer shop" href={shopLink} onCopy={() => void copy(shopLink, "Shop address")} />
         <SiteRow label="Staff desk" href={deskLink} onCopy={() => void copy(deskLink, "Desk address")} />
       </section>
-
-      {localComputer ? (
-      <section className="space-y-4 rounded-xl bg-card p-5 shadow-[var(--shadow-border)]">
-        <div>
-          <h2 className="inline-flex items-center gap-2 text-lg font-semibold">
-            <Wifi className="size-4" />
-            On this Wi‑Fi
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Open one of these addresses on a phone connected to the same network, then enter the store password.
-          </p>
-        </div>
-        {urls.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Connect this computer to Wi‑Fi to share the shop.</p>
-        ) : (
-          urls.map((href) => (
-            <SiteRow key={href} label="Open on a phone" href={href} onCopy={() => void copy(href, "Address")} />
-          ))
-        )}
-        {dataPath ? (
-          <p className="inline-flex items-start gap-2 text-xs text-muted-foreground">
-            <HardDrive className="mt-0.5 size-3.5 shrink-0" />
-            Database folder on this computer: {dataPath}
-          </p>
-        ) : null}
-      </section>
+      )}
+      {localComputer && dataPath ? (
+        <p className="inline-flex items-start gap-2 text-xs text-muted-foreground">
+          <HardDrive className="mt-0.5 size-3.5 shrink-0" />
+          Database folder on this computer: {dataPath}
+        </p>
       ) : null}
 
       <form

@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { WifiShare } from "@/components/wifi-share";
 import { isRecordedSale, orderProfit, saleKind } from "@/lib/catalog";
 import { money } from "@/lib/money";
 import { useShop } from "@/lib/market-hooks";
@@ -76,6 +77,9 @@ function ManageHome() {
         <div>
           <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">{shop.city}</p>
           <h1 className="font-display text-4xl">Staff desk</h1>
+          <p className="mt-2 max-w-xl text-sm text-muted-foreground">
+            This computer is the shop. Phones on the same Wi‑Fi use the address below.
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild>
@@ -114,6 +118,8 @@ function ManageHome() {
           </Button>
         </div>
       </div>
+
+      <WifiShare compact />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="All sales" value={money(revenue)} />

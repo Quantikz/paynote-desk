@@ -9,9 +9,16 @@ Download **Paynote-Windows.zip** from Releases (or the file sent to you).
 1. Unzip it on the store PC.
 2. Double-click `Paynote.exe`.
 3. If Windows shows a warning: **More info → Run anyway**.
-4. Store password **1234**. Staff PIN **1234**.
+4. Paynote opens on **this computer**. Store password **1234**. Staff PIN **1234**.
 
-Phones on the same Wi‑Fi can open the shop with that password. The Wi‑Fi address is in the Paynote menu.
+Phones and other computers on the **same Wi‑Fi** open the Wi‑Fi address shown on the password screen (and on Sales / Company), then enter the same password.
+
+Example:
+
+- This computer: `http://127.0.0.1:8080`
+- Phones on Wi‑Fi: `http://192.168.x.x:8080`
+
+If a phone cannot open it, allow Paynote on private networks when Windows asks.
 
 The shop book is saved at:
 

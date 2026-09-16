@@ -9,17 +9,22 @@ Install
 1. Copy the Paynote folder onto the store PC (Desktop or C:\Paynote).
 2. Open the folder and double-click Paynote.exe.
 3. Windows may say “Windows protected your PC”. Click More info, then Run anyway.
-4. The Paynote window opens. Store password default is 1234.
-   Staff desk PIN default is 1234.
+4. The Paynote window opens on this computer (localhost).
+   Store password default is 1234. Staff desk PIN default is 1234.
 
-Use it
-------
-- Shop and staff desk are in the same window.
-- Add products with a photo and the buying cost.
-- Performance shows profit, cost of stock sold, and stock on hand.
-- Phones on the same Wi‑Fi can open Paynote: in the window menu choose
-  Paynote → Wi‑Fi address, then type that address on the phone.
-  Use the store password (default 1234).
+This computer and Wi‑Fi
+-----------------------
+Paynote opens on the store PC automatically.
+
+On that same Wi‑Fi, phones and other computers open the Wi‑Fi address
+shown on the password screen and under Company / Sales, for example:
+
+  This computer:     http://127.0.0.1:8080
+  Phones on Wi‑Fi:   http://192.168.x.x:8080
+
+Everyone uses the same store password (default 1234).
+
+If a phone cannot open it, allow Paynote on private networks when Windows asks.
 
 Where data is saved
 -------------------

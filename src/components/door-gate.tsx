@@ -7,6 +7,7 @@ import { rememberStore, storeUnlocked } from "@/lib/door";
 import { unlockStore } from "@/lib/ledger";
 import { useShop } from "@/lib/market-hooks";
 import { surface } from "@/lib/surface";
+import { WifiShare } from "@/components/wifi-share";
 
 export function DoorGate({ children }: { children: React.ReactNode }) {
   const hosted = surface() !== "both";
@@ -41,10 +42,11 @@ export function DoorGate({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-background px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-background px-4 py-10">
+      <div className="flex w-full max-w-lg flex-col gap-6">
       <form
         onSubmit={(event) => void submit(event)}
-        className="w-full max-w-sm rounded-xl bg-card p-8 text-card-foreground shadow-[var(--shadow-border)]"
+        className="w-full rounded-xl bg-card p-8 text-card-foreground shadow-[var(--shadow-border)]"
       >
         <div className="grid size-10 place-items-center rounded-md bg-primary text-primary-foreground">
           <KeyRound className="size-4" strokeWidth={1.75} />
@@ -85,6 +87,8 @@ export function DoorGate({ children }: { children: React.ReactNode }) {
           {busy ? "Opening…" : "Open"}
         </Button>
       </form>
+      <WifiShare compact />
+      </div>
     </div>
   );
 }

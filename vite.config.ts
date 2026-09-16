@@ -143,8 +143,11 @@ function authPopupPlugin(): Plugin {
 }
 
 // `0.0.0.0:8080` is the live-preview contract — don't change host/port.
-// The dev server starts once `src/router.tsx` and `src/routes/` exist — see
-// AGENTS.md § "First scaffold".
+// The store program (PAYNOTE_LOCAL=1) must bind every interface so phones on
+// the same Wi‑Fi can open it. Smoke preview stays loopback :8081.
+const storeLocal = process.env.PAYNOTE_LOCAL === "1";
+const storePort = Number(process.env.PAYNOTE_PORT || process.env.PORT || 8080);
+
 export default defineConfig(({ command, isPreview }) => ({
   server: {
     host: "0.0.0.0",
@@ -152,8 +155,8 @@ export default defineConfig(({ command, isPreview }) => ({
     strictPort: true,
   },
   preview: {
-    host: "127.0.0.1",
-    port: 8081,
+    host: storeLocal ? "0.0.0.0" : "127.0.0.1",
+    port: storeLocal ? storePort : 8081,
     strictPort: true,
   },
   resolve: { tsconfigPaths: true },

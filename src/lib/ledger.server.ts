@@ -251,7 +251,12 @@ export async function saveLedgerNow(input: {
 
 export async function lanInfoNow() {
   const { dataDir } = await sqlClient();
-  return { urls: lanUrls(), dataDir };
+  const port = listenPort();
+  return {
+    urls: lanUrls(),
+    localUrl: `http://127.0.0.1:${port}`,
+    dataDir,
+  };
 }
 
 export async function unlockStoreNow(password: string) {
