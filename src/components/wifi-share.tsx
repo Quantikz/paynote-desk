@@ -1,24 +1,28 @@
 import { useEffect, useState } from "react";
-import { Copy, Monitor, Wifi } from "lucide-react";
+import { Copy, Monitor, Smartphone, Wifi } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { lanInfo } from "@/lib/ledger";
-import { surface } from "@/lib/surface";
+import { shopUrl } from "@/lib/surface";
 
 export function WifiShare({ compact = false }: { compact?: boolean }) {
-  const localOnly = surface() === "both";
+  const [local, setLocal] = useState(false);
+  const [ready, setReady] = useState(false);
   const [localUrl, setLocalUrl] = useState("");
   const [urls, setUrls] = useState<string[]>([]);
+  const [phoneHref, setPhoneHref] = useState("");
 
   useEffect(() => {
-    if (!localOnly) return;
-    void lanInfo().then((info) => {
-      setLocalUrl(info.localUrl);
-      setUrls(info.urls);
-    });
-  }, [localOnly]);
-
-  if (!localOnly) return null;
+    const publicShop = shopUrl().startsWith("http") ? shopUrl() : window.location.origin;
+    setPhoneHref(publicShop);
+    void lanInfo()
+      .then((info) => {
+        setLocal(Boolean(info.local));
+        setLocalUrl(info.localUrl || "");
+        setUrls(info.urls || []);
+      })
+      .finally(() => setReady(true));
+  }, []);
 
   async function copy(value: string, label: string) {
     try {
@@ -29,6 +33,32 @@ export function WifiShare({ compact = false }: { compact?: boolean }) {
     }
   }
 
+  if (!ready) return null;
+
+  if (!local) {
+    return (
+      <section className="space-y-4 rounded-xl bg-card p-5 shadow-[var(--shadow-border)]">
+        <div>
+          <h2 className="inline-flex items-center gap-2 text-lg font-semibold">
+            <Smartphone className="size-4" />
+            On a phone
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            This shop is on the internet. Phones open the shop address below — not a Wi‑Fi number. The phone needs mobile data or any Wi‑Fi with internet.
+          </p>
+        </div>
+        {phoneHref ? (
+          <Row
+            icon={Smartphone}
+            label="Customer shop"
+            href={phoneHref}
+            onCopy={() => void copy(phoneHref, "Shop address")}
+          />
+        ) : null}
+      </section>
+    );
+  }
+
   return (
     <section className="space-y-4 rounded-xl bg-card p-5 shadow-[var(--shadow-border)]">
       <div>
@@ -37,7 +67,7 @@ export function WifiShare({ compact = false }: { compact?: boolean }) {
           This computer and Wi‑Fi
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Paynote is open on this PC. Anyone on the same Wi‑Fi opens the Wi‑Fi address, then the store password (default 1234).
+          Paynote is open on this PC. Anyone on the same Wi‑Fi opens the Wi‑Fi address, then the store password.
         </p>
       </div>
       {localUrl ? (

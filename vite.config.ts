@@ -153,11 +153,13 @@ export default defineConfig(({ command, isPreview }) => ({
     host: "0.0.0.0",
     port: 8080,
     strictPort: true,
+    allowedHosts: true,
   },
   preview: {
     host: storeLocal ? "0.0.0.0" : "127.0.0.1",
     port: storeLocal ? storePort : 8081,
     strictPort: true,
+    allowedHosts: true,
   },
   resolve: { tsconfigPaths: true },
   plugins: [

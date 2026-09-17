@@ -30,10 +30,14 @@ function lanUrls() {
   const urls = [];
   for (const list of Object.values(networkInterfaces())) {
     for (const net of list ?? []) {
-      if (net.family !== "IPv4" || net.internal) continue;
+      const family = String(net.family);
+      if (net.internal) continue;
+      if (family !== "IPv4" && family !== "4") continue;
+      if (String(net.address).startsWith("169.254.")) continue;
       urls.push(`http://${net.address}:${PORT}`);
     }
   }
+  urls.sort((a, b) => Number(b.includes("192.168.")) - Number(a.includes("192.168.")));
   return urls;
 }
 

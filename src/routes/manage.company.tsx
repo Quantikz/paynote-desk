@@ -14,7 +14,7 @@ import { normalizeShop, type ShopProfile } from "@/lib/shop";
 import { changeStaffPin } from "@/lib/staff-server";
 import { staffToken } from "@/lib/staff-session";
 import { useMarket } from "@/lib/store";
-import { adminUrl, shopUrl, surface } from "@/lib/surface";
+import { adminUrl, shopUrl } from "@/lib/surface";
 
 export const Route = createFileRoute("/manage/company")({
   component: CompanyPage,
@@ -32,13 +32,14 @@ function CompanyPage() {
   const [door, setDoor] = useState("");
   const [busy, setBusy] = useState(false);
   const [dataPath, setDataPath] = useState("");
+  const [isLocal, setIsLocal] = useState(false);
   const shopLink = shopUrl().startsWith("http") ? shopUrl() : PUBLIC_SHOP;
   const deskLink = adminUrl().startsWith("http") ? adminUrl() : PUBLIC_DESK;
-  const localComputer = surface() === "both";
 
   useEffect(() => {
     void lanInfo().then((info) => {
       setDataPath(info.dataDir);
+      setIsLocal(Boolean(info.local));
     });
   }, []);
 
@@ -107,7 +108,7 @@ function CompanyPage() {
         </p>
       </div>
 
-      {localComputer ? <WifiShare /> : (
+      {isLocal ? <WifiShare /> : (
       <section className="space-y-4 rounded-xl bg-card p-5 shadow-[var(--shadow-border)]">
         <div>
           <h2 className="inline-flex items-center gap-2 text-lg font-semibold">
@@ -122,7 +123,7 @@ function CompanyPage() {
         <SiteRow label="Staff desk" href={deskLink} onCopy={() => void copy(deskLink, "Desk address")} />
       </section>
       )}
-      {localComputer && dataPath ? (
+      {isLocal && dataPath ? (
         <p className="inline-flex items-start gap-2 text-xs text-muted-foreground">
           <HardDrive className="mt-0.5 size-3.5 shrink-0" />
           Database folder on this computer: {dataPath}

@@ -34,15 +34,29 @@ function listenPort() {
   return Number.isFinite(raw) && raw > 0 ? raw : 8080;
 }
 
+function isLocalProcess() {
+  return process.env.PAYNOTE_LOCAL === "1";
+}
+
+function isLanV4(net: { family?: string | number; internal?: boolean; address: string }) {
+  if (net.internal) return false;
+  const family = String(net.family);
+  if (family !== "IPv4" && family !== "4") return false;
+  if (net.address.startsWith("169.254.")) return false;
+  return true;
+}
+
 export function lanUrls() {
+  if (!isLocalProcess()) return [];
   const port = listenPort();
   const urls: string[] = [];
   for (const list of Object.values(networkInterfaces())) {
     for (const net of list ?? []) {
-      if (net.family !== "IPv4" || net.internal) continue;
+      if (!isLanV4(net)) continue;
       urls.push(`http://${net.address}:${port}`);
     }
   }
+  urls.sort((a, b) => Number(b.includes("192.168.")) - Number(a.includes("192.168.")));
   return urls;
 }
 
@@ -251,11 +265,13 @@ export async function saveLedgerNow(input: {
 
 export async function lanInfoNow() {
   const { dataDir } = await sqlClient();
+  const local = isLocalProcess();
   const port = listenPort();
   return {
-    urls: lanUrls(),
-    localUrl: `http://127.0.0.1:${port}`,
-    dataDir,
+    local,
+    urls: local ? lanUrls() : [],
+    localUrl: local ? `http://127.0.0.1:${port}` : "",
+    dataDir: local ? dataDir : "",
   };
 }
 
